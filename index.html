@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Agriculture Evaluation Real-Time Database</title>
+
+  <style>
+    :root {
+      --navy: #12345A;
+      --blue: #315C83;
+      --gold: #C9A227;
+      --red: #A54646;
+      --bg: #F5F7FB;
+      --card: #FFFFFF;
+      --line: #E5E7EB;
+      --text: #1F2937;
+      --muted: #667085;
+      --green-bg: #DDEFE3;
+      --green-text: #1F6B3B;
+      --yellow-bg: #FFF4D6;
+      --yellow-text: #8A6500;
+      --red-bg: #F8D7DA;
+      --red-text: #842029;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    header {
+      background: linear-gradient(135deg, var(--navy), var(--blue));
+      color: white;
+      padding: 26px 18px;
+    }
+
+    .header-inner {
+      max-width: 1250px;
+      margin: auto;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 28px;
+    }
+
+    .subtitle {
+      margin-top: 6px;
+      opacity: 0.92;
+      font-size: 14px;
+    }
+
+    .container {
+      max-width: 1250px;
+      margin: auto;
+      padding: 18px;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .status {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    button {
+      border: none;
+      background: var(--navy);
+      color: white;
+      padding: 10px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    button:hover {
+      background: var(--blue);
+    }
+
+    button.secondary {
+      background: #EAF0F7;
+      color: var(--navy);
+    }
+
+    button.secondary:hover {
+      background: #DCE8F5;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .card {
+      background: var(--card);
+      padding: 16px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      box-shadow: 0 6px 18px rgba(16, 24, 40, 0.08);
+    }
+
+    .label {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .value {
+      font-size: 30px;
+      font-weight: 800;
+      color: var(--navy);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .panel {
+      background: var(--card);
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      box-shadow: 0 6px 18px rgba(16, 24, 40, 0.08);
+      padding: 16px;
+      overflow-x: auto;
+      margin-bottom: 16px;
+    }
+
+    .panel h2 {
+      margin: 0 0 12px;
+      color: var(--navy);
+      font-size: 18px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(160px, 1fr));
+      gap: 12px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    label {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 10px 11px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      outline: none;
+      font-family: Arial, Helvetica, sans-serif;
+      background: white;
+    }
+
+    textarea {
+      min-height: 70px;
+      resize: vertical;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(49, 92, 131, 0.12);
+    }
+
+    .full {
+      grid-column: 1 / -1;
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+
+    .message {
+      margin-top: 10px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .success {
+      color: var(--green-text);
+    }
+
+    .error {
+      color: var(--red-text);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid #EDF2F7;
+      padding: 10px;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    th {
+      background: #EAF0F7;
+      color: var(--navy);
+      font-weight: 700;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    .bar {
+      height: 10px;
+      background: #E6EEF8;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+
+    .fill {
+      height: 100%;
+      background: var(--blue);
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 5px 9px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .passed {
+      background: var(--green-bg);
+      color: var(--green-text);
+    }
+
+    .delib {
+      background: var(--yellow-bg);
+      color: var(--yellow-text);
+    }
+
+    .failed {
+      background: var(--red-bg);
+      color: var(--red-text);
+    }
+
+    .pending {
+      background: #E5E7EB;
+      color: #374151;
+    }
+
+    .search-box {
+      width: min(100%, 390px);
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      outline: none;
+    }
+
+    footer {
+      color: var(--muted);
+      text-align: center;
+      padding: 18px;
+      font-size: 12px;
+    }
+
+    @media(max-width: 980px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .form-grid {
+        grid-template-columns: repeat(2, minmax(160px, 1fr));
+      }
+    }
+
+    @media(max-width: 620px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 22px;
+      }
+
+      .value {
+        font-size: 25px;
+      }
+
+      .toolbar {
+        align-items: stretch;
+      }
+
+      .toolbar > div {
+        width: 100%;
+      }
+
+      .search-box {
+        width: 100%;
+        margin-bottom: 8px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="header-inner">
+      <h1>Agriculture Evaluation Real-Time Database</h1>
+      <div class="subtitle">
+        Live dashboard and evaluation input connected to Google Sheets
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="toolbar">
+      <div class="status" id="statusText">Loading data...</div>
+      <div>
+        <input
+          type="text"
+          id="searchInput"
+          class="search-box"
+          placeholder="Search HEI, program, region, evaluator..."
+          oninput="renderRecentTable()"
+        />
+        <button onclick="loadDashboard()">Refresh</button>
+      </div>
+    </div>
+
+    <section class="panel">
+      <h2>Add Evaluation Record</h2>
+
+      <form id="evaluationForm">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="region">Region</label>
+            <select id="region" required>
+              <option value="">Select Region</option>
+              <option>I</option>
+              <option>II</option>
+              <option>III</option>
+              <option>IV-A</option>
+              <option>V</option>
+              <option>VI</option>
+              <option>VII</option>
+              <option>VIII</option>
+              <option>IX</option>
+              <option>X</option>
+              <option>XI</option>
+              <option>XII</option>
+              <option>NCR</option>
+              <option>CAR</option>
+              <option>CARAGA</option>
+              <option>MIMAROPA</option>
+              <option>NIR</option>
+              <option>BARMM</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="hei">HEI Name</label>
+            <input id="hei" type="text" placeholder="Name of HEI" required />
+          </div>
+
+          <div class="form-group">
+            <label for="program">Program</label>
+            <input id="program" type="text" placeholder="Program name" required />
+          </div>
+
+          <div class="form-group">
+            <label for="evaluator">Evaluator</label>
+            <input id="evaluator" type="text" placeholder="Evaluator name" />
+          </div>
+
+          <div class="form-group">
+            <label for="score">Score</label>
+            <input id="score" type="number" min="0" max="100" step="0.01" placeholder="0-100" />
+          </div>
+
+          <div class="form-group">
+            <label for="passingScore">Passing Score</label>
+            <input id="passingScore" type="number" min="0" max="100" step="0.01" value="60" />
+          </div>
+
+          <div class="form-group">
+            <label for="status">Status</label>
+            <select id="status">
+              <option>Pending</option>
+              <option>Ongoing</option>
+              <option>Evaluated</option>
+              <option>For Validation</option>
+              <option>For Deliberation</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="dateEvaluated">Date Evaluated</label>
+            <input id="dateEvaluated" type="date" />
+          </div>
+
+          <div class="form-group full">
+            <label for="rubricLink">Rubric Link</label>
+            <input id="rubricLink" type="url" placeholder="Paste rubric link, if available" />
+          </div>
+
+          <div class="form-group full">
+            <label for="evidenceLink">Evidence Link</label>
+            <input id="evidenceLink" type="url" placeholder="Paste evidence/document link, if available" />
+          </div>
+
+          <div class="form-group full">
+            <label for="remarks">Remarks</label>
+            <textarea id="remarks" placeholder="Evaluation remarks or notes"></textarea>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="secondary" onclick="clearForm()">Clear</button>
+          <button type="submit">Submit to Database</button>
+        </div>
+
+        <div class="message" id="formMessage"></div>
+      </form>
+    </section>
+
+    <section class="cards" id="cards"></section>
+
+    <section class="grid">
+      <div class="panel">
+        <h2>Applications by Region</h2>
+        <table id="regionTable"></table>
+      </div>
+
+      <div class="panel">
+        <h2>Decision Summary</h2>
+        <table id="decisionTable"></table>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="panel">
+        <h2>Evaluator Summary</h2>
+        <table id="evaluatorTable"></table>
+      </div>
+
+      <div class="panel">
+        <h2>Status Summary</h2>
+        <table id="statusTable"></table>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Live Database Records</h2>
+      <table id="recentTable"></table>
+    </section>
+  </main>
+
+  <footer>
+    Agriculture Evaluation Database | Live Google Sheets Dashboard
+  </footer>
+
+  <script>
+    const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwfXl68WvN7szsYgZIFGUz_kfgRrQTpGWPcZ16KeCMcVGL4uYUpg5U5TgfJ0YAxLVtybQ/exec';
+
+    let dashboardData = null;
+
+    document.getElementById('evaluationForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      submitRecord();
+    });
+
+    function loadDashboard() {
+      const callbackName = 'jsonpCallback_' + Date.now();
+
+      window[callbackName] = function(data) {
+        dashboardData = data;
+        renderDashboard(data);
+        delete window[callbackName];
+        script.remove();
+      };
+
+      const script = document.createElement('script');
+      script.src = `${GAS_WEB_APP_URL}?mode=data&callback=${callbackName}`;
+      script.onerror = function() {
+        document.getElementById('statusText').textContent =
+          'Connection failed. Please check your Apps Script deployment access.';
+      };
+
+      document.body.appendChild(script);
+    }
+
+    function submitRecord() {
+      const message = document.getElementById('formMessage');
+      message.className = 'message';
+      message.textContent = 'Submitting record...';
+
+      const payload = {
+        action: 'addRecord',
+        region: document.getElementById('region').value,
+        hei: document.getElementById('hei').value,
+        program: document.getElementById('program').value,
+        rubricLink: document.getElementById('rubricLink').value,
+        evidenceLink: document.getElementById('evidenceLink').value,
+        score: document.getElementById('score').value,
+        passingScore: document.getElementById('passingScore').value,
+        evaluator: document.getElementById('evaluator').value,
+        dateEvaluated: document.getElementById('dateEvaluated').value,
+        remarks: document.getElementById('remarks').value,
+        status: document.getElementById('status').value
+      };
+
+      fetch(GAS_WEB_APP_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8'
+        },
+        body: JSON.stringify(payload)
+      })
+      .then(function() {
+        message.className = 'message success';
+        message.textContent = 'Record submitted. Refreshing dashboard...';
+        clearForm(false);
+
+        setTimeout(function() {
+          loadDashboard();
+          message.textContent = 'Record submitted successfully.';
+        }, 1500);
+      })
+      .catch(function(error) {
+        message.className = 'message error';
+        message.textContent = 'Submission failed. Please check your Apps Script deployment.';
+        console.error(error);
+      });
+    }
+
+    function clearForm(clearMessage = true) {
+      document.getElementById('evaluationForm').reset();
+      document.getElementById('passingScore').value = 60;
+
+      if (clearMessage) {
+        document.getElementById('formMessage').textContent = '';
+        document.getElementById('formMessage').className = 'message';
+      }
+    }
+
+    function renderDashboard(data) {
+      const s = data.summary;
+
+      document.getElementById('statusText').textContent =
+        'Last refresh: ' + data.updatedAt;
+
+      document.getElementById('cards').innerHTML = [
+        ['Total Applications', s.totalApplications],
+        ['Unique HEIs', s.uniqueHEIs],
+        ['Regions Covered', s.regionsCovered],
+        ['Evaluated', s.evaluated],
+        ['Pending', s.pending],
+        ['Passed', s.passed]
+      ].map(item => `
+        <div class="card">
+          <div class="label">${item[0]}</div>
+          <div class="value">${item[1]}</div>
+        </div>
+      `).join('');
+
+      renderRegionTable(data.regionSummary);
+      renderSimpleTable('decisionTable', data.decisionSummary);
+      renderSimpleTable('evaluatorTable', data.evaluatorSummary);
+      renderSimpleTable('statusTable', data.statusSummary);
+      renderRecentTable();
+    }
+
+    function renderRegionTable(rows) {
+      if (!rows || !rows.length) {
+        document.getElementById('regionTable').innerHTML =
+          '<tr><td>No data found.</td></tr>';
+        return;
+      }
+
+      const max = Math.max(...rows.slice(1).map(row => Number(row[1]) || 0), 1);
+
+      document.getElementById('regionTable').innerHTML = rows.map((row, index) => {
+        if (index === 0) {
+          return `<tr>${row.map(cell => `<th>${escapeHtml(cell)}</th>`).join('')}</tr>`;
+        }
+
+        const width = ((Number(row[1]) || 0) / max) * 100;
+
+        return `
+          <tr>
+            <td>${escapeHtml(row[0])}</td>
+            <td>
+              ${escapeHtml(row[1])}
+              <div class="bar">
+                <div class="fill" style="width:${width}%"></div>
+              </div>
+            </td>
+            <td>${escapeHtml(row[2])}</td>
+            <td>${escapeHtml(row[3])}</td>
+            <td>${escapeHtml(row[4])}</td>
+            <td>${escapeHtml(row[5])}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderSimpleTable(id, rows) {
+      if (!rows || !rows.length) {
+        document.getElementById(id).innerHTML =
+          '<tr><td>No data found.</td></tr>';
+        return;
+      }
+
+      document.getElementById(id).innerHTML = rows.map((row, index) => {
+        return `
+          <tr>
+            ${row.map(cell => index === 0
+              ? `<th>${escapeHtml(cell)}</th>`
+              : `<td>${escapeHtml(cell)}</td>`
+            ).join('')}
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderRecentTable() {
+      if (!dashboardData) return;
+
+      const search = document.getElementById('searchInput').value.toLowerCase().trim();
+      let rows = dashboardData.recentRows || dashboardData.records || [];
+
+      if (search) {
+        rows = rows.filter(row => {
+          return [
+            row.no,
+            row.region,
+            row.hei,
+            row.program,
+            row.score,
+            row.evaluator,
+            row.status,
+            row.decision
+          ].join(' ').toLowerCase().includes(search);
+        });
+      }
+
+      const headers = [
+        'No.',
+        'Region',
+        'HEI',
+        'Program',
+        'Score',
+        'Evaluator',
+        'Status',
+        'Rating',
+        'Decision'
+      ];
+
+      const body = rows.map(row => `
+        <tr>
+          <td>${escapeHtml(row.no || '')}</td>
+          <td>${escapeHtml(row.region || '')}</td>
+          <td>${escapeHtml(row.hei || '')}</td>
+          <td>${escapeHtml(row.program || '')}</td>
+          <td>${escapeHtml(row.score || '')}</td>
+          <td>${escapeHtml(row.evaluator || '')}</td>
+          <td>${escapeHtml(row.status || '')}</td>
+          <td>${escapeHtml(row.rating || '')}</td>
+          <td>${decisionPill(row.decision)}</td>
+        </tr>
+      `).join('');
+
+      document.getElementById('recentTable').innerHTML =
+        `<tr>${headers.map(header => `<th>${header}</th>`).join('')}</tr>` +
+        (body || '<tr><td colspan="9">No matching records found.</td></tr>');
+    }
+
+    function decisionPill(value) {
+      let cls = 'pending';
+
+      if (value === 'Passed') cls = 'passed';
+      if (value === 'For Deliberation') cls = 'delib';
+      if (value === 'Failed') cls = 'failed';
+
+      return `<span class="pill ${cls}">${escapeHtml(value || 'Pending')}</span>`;
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    loadDashboard();
+    setInterval(loadDashboard, 10000);
+  </script>
+</body>
+</html>
