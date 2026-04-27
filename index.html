@@ -4,25 +4,23 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>Agriculture Evaluation Real-Time Database</title>
+  <title>Agriculture Evaluation Live Dashboard</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
     :root {
-      --navy: #12345A;
-      --blue: #315C83;
-      --gold: #C9A227;
-      --red: #A54646;
-      --bg: #F5F7FB;
-      --card: #FFFFFF;
-      --line: #E5E7EB;
-      --text: #1F2937;
-      --muted: #667085;
-      --green-bg: #DDEFE3;
-      --green-text: #1F6B3B;
-      --yellow-bg: #FFF4D6;
-      --yellow-text: #8A6500;
-      --red-bg: #F8D7DA;
-      --red-text: #842029;
+      --bg: #171936;
+      --card: #25284f;
+      --card2: #2e315f;
+      --text: #f7f8ff;
+      --muted: #aeb4d8;
+      --cyan: #18c6ff;
+      --gold: #f5c84c;
+      --red: #ff5b5b;
+      --green: #4ade80;
+      --purple: #a78bfa;
+      --border: rgba(255, 255, 255, 0.09);
     }
 
     * {
@@ -36,703 +34,855 @@
       color: var(--text);
     }
 
-    header {
-      background: linear-gradient(135deg, var(--navy), var(--blue));
-      color: white;
-      padding: 26px 18px;
-    }
-
-    .header-inner {
-      max-width: 1250px;
-      margin: auto;
-    }
-
-    h1 {
-      margin: 0;
-      font-size: 28px;
-    }
-
-    .subtitle {
-      margin-top: 6px;
-      opacity: 0.92;
-      font-size: 14px;
-    }
-
-    .container {
-      max-width: 1250px;
-      margin: auto;
-      padding: 18px;
-    }
-
-    .toolbar {
-      display: flex;
-      gap: 10px;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      margin-bottom: 16px;
-    }
-
-    .status {
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    button {
-      border: none;
-      background: var(--navy);
-      color: white;
-      padding: 10px 14px;
-      border-radius: 10px;
-      cursor: pointer;
-      font-weight: 700;
-    }
-
-    button:hover {
-      background: var(--blue);
-    }
-
-    button.secondary {
-      background: #EAF0F7;
-      color: var(--navy);
-    }
-
-    button.secondary:hover {
-      background: #DCE8F5;
-    }
-
-    .cards {
+    .dashboard {
+      padding: 14px;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-      gap: 14px;
-      margin-bottom: 16px;
+      grid-template-columns: 1.1fr 2.8fr 1fr;
+      gap: 12px;
+      min-height: 100vh;
     }
 
-    .card {
-      background: var(--card);
-      padding: 16px;
-      border-radius: 16px;
-      border: 1px solid var(--line);
-      box-shadow: 0 6px 18px rgba(16, 24, 40, 0.08);
-    }
-
-    .label {
-      font-size: 13px;
-      color: var(--muted);
-      margin-bottom: 8px;
-    }
-
-    .value {
-      font-size: 30px;
-      font-weight: 800;
-      color: var(--navy);
-    }
-
-    .grid {
+    .left,
+    .center,
+    .right {
       display: grid;
-      grid-template-columns: 1.5fr 1fr;
-      gap: 16px;
-      margin-bottom: 16px;
+      gap: 12px;
+      align-content: start;
     }
 
     .panel {
       background: var(--card);
-      border-radius: 16px;
-      border: 1px solid var(--line);
-      box-shadow: 0 6px 18px rgba(16, 24, 40, 0.08);
-      padding: 16px;
-      overflow-x: auto;
-      margin-bottom: 16px;
+      border-radius: 12px;
+      padding: 15px;
+      border: 1px solid var(--border);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.18);
     }
 
-    .panel h2 {
-      margin: 0 0 12px;
-      color: var(--navy);
-      font-size: 18px;
-    }
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(160px, 1fr));
-      gap: 12px;
-    }
-
-    .form-group {
+    .kpi {
+      min-height: 118px;
       display: flex;
       flex-direction: column;
-      gap: 5px;
+      justify-content: center;
     }
 
-    label {
-      font-size: 12px;
+    .kpi-value {
+      font-size: 43px;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -1px;
+    }
+
+    .kpi-label {
+      font-size: 14px;
       color: var(--muted);
-      font-weight: 700;
+      margin-top: 8px;
     }
 
-    input,
-    select,
-    textarea {
-      width: 100%;
-      padding: 10px 11px;
-      border-radius: 10px;
-      border: 1px solid var(--line);
-      outline: none;
-      font-family: Arial, Helvetica, sans-serif;
-      background: white;
+    .positive {
+      color: var(--green);
     }
 
-    textarea {
-      min-height: 70px;
-      resize: vertical;
+    .negative {
+      color: var(--red);
     }
 
-    input:focus,
-    select:focus,
-    textarea:focus {
-      border-color: var(--blue);
-      box-shadow: 0 0 0 3px rgba(49, 92, 131, 0.12);
+    .warning {
+      color: var(--gold);
     }
 
-    .full {
-      grid-column: 1 / -1;
+    h1 {
+      font-size: 22px;
+      margin: 0;
     }
 
-    .form-actions {
+    h2 {
+      font-size: 15px;
+      margin: 0 0 12px;
+      color: var(--text);
+    }
+
+    .subtext {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 5px;
+    }
+
+    .topbar {
       display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-      margin-top: 12px;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
       flex-wrap: wrap;
     }
 
-    .message {
-      margin-top: 10px;
-      font-size: 13px;
-      color: var(--muted);
+    .filters {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 12px;
     }
 
-    .success {
-      color: var(--green-text);
+    input,
+    select {
+      background: var(--card2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 10px 11px;
+      border-radius: 8px;
+      outline: none;
+      min-width: 150px;
     }
 
-    .error {
-      color: var(--red-text);
+    button {
+      background: var(--cyan);
+      color: #061428;
+      border: none;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    .charts-two {
+      display: grid;
+      grid-template-columns: 1.45fr 1fr;
+      gap: 12px;
+    }
+
+    .table-wrap {
+      max-height: 380px;
+      overflow: auto;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 13px;
+      font-size: 12px;
     }
 
     th,
     td {
-      border-bottom: 1px solid #EDF2F7;
-      padding: 10px;
+      padding: 9px 8px;
+      border-bottom: 1px solid var(--border);
       text-align: center;
       vertical-align: middle;
     }
 
     th {
-      background: #EAF0F7;
-      color: var(--navy);
-      font-weight: 700;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.04);
       position: sticky;
       top: 0;
-      z-index: 1;
+      z-index: 2;
     }
 
-    .bar {
-      height: 10px;
-      background: #E6EEF8;
-      border-radius: 999px;
-      overflow: hidden;
-      margin-top: 6px;
+    td:first-child,
+    th:first-child {
+      text-align: left;
     }
 
-    .fill {
-      height: 100%;
-      background: var(--blue);
-    }
-
-    .pill {
+    .badge {
       display: inline-block;
-      padding: 5px 9px;
+      padding: 5px 8px;
       border-radius: 999px;
-      font-size: 12px;
-      font-weight: 700;
+      font-size: 11px;
+      font-weight: 800;
       white-space: nowrap;
     }
 
-    .passed {
-      background: var(--green-bg);
-      color: var(--green-text);
+    .badge-qualified {
+      background: rgba(74, 222, 128, 0.14);
+      color: var(--green);
     }
 
-    .delib {
-      background: var(--yellow-bg);
-      color: var(--yellow-text);
+    .badge-not-qualified {
+      background: rgba(255, 91, 91, 0.15);
+      color: var(--red);
     }
 
-    .failed {
-      background: var(--red-bg);
-      color: var(--red-text);
+    .badge-pending {
+      background: rgba(245, 200, 76, 0.16);
+      color: var(--gold);
     }
 
-    .pending {
-      background: #E5E7EB;
-      color: #374151;
+    .mini-number {
+      font-size: 34px;
+      font-weight: 800;
+      line-height: 1;
     }
 
-    .search-box {
-      width: min(100%, 390px);
-      padding: 10px 12px;
-      border-radius: 10px;
-      border: 1px solid var(--line);
-      outline: none;
-    }
-
-    footer {
+    .mini-label {
+      font-size: 13px;
       color: var(--muted);
-      text-align: center;
-      padding: 18px;
-      font-size: 12px;
+      margin-top: 5px;
+      margin-bottom: 18px;
     }
 
-    @media(max-width: 980px) {
-      .grid {
+    .insight-box {
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    canvas {
+      max-height: 290px;
+    }
+
+    .score-cell {
+      font-weight: 800;
+    }
+
+    .link-btn {
+      color: var(--cyan);
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .link-btn:hover {
+      text-decoration: underline;
+    }
+
+    .small-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    @media (max-width: 1200px) {
+      .dashboard {
         grid-template-columns: 1fr;
       }
 
-      .form-grid {
-        grid-template-columns: repeat(2, minmax(160px, 1fr));
-      }
-    }
-
-    @media(max-width: 620px) {
-      .form-grid {
+      .charts-two,
+      .small-grid {
         grid-template-columns: 1fr;
       }
 
-      h1 {
-        font-size: 22px;
-      }
-
-      .value {
-        font-size: 25px;
-      }
-
-      .toolbar {
-        align-items: stretch;
-      }
-
-      .toolbar > div {
-        width: 100%;
-      }
-
-      .search-box {
-        width: 100%;
-        margin-bottom: 8px;
+      .kpi-value {
+        font-size: 36px;
       }
     }
   </style>
 </head>
 
 <body>
-  <header>
-    <div class="header-inner">
-      <h1>Agriculture Evaluation Real-Time Database</h1>
-      <div class="subtitle">
-        Live dashboard and evaluation input connected to Google Sheets
+  <div class="dashboard">
+
+    <div class="left">
+      <div class="panel kpi">
+        <div class="kpi-value" id="totalApplications">0</div>
+        <div class="kpi-label">Total Applications</div>
+      </div>
+
+      <div class="panel kpi">
+        <div class="kpi-value positive" id="qualified">0</div>
+        <div class="kpi-label">Qualified Applications</div>
+      </div>
+
+      <div class="panel kpi">
+        <div class="kpi-value negative" id="notQualified">0</div>
+        <div class="kpi-label">Not Qualified Applications</div>
+      </div>
+
+      <div class="panel kpi">
+        <div class="kpi-value warning" id="pending">0</div>
+        <div class="kpi-label">Pending / No Score</div>
       </div>
     </div>
-  </header>
 
-  <main class="container">
-    <div class="toolbar">
-      <div class="status" id="statusText">Loading data...</div>
-      <div>
-        <input
-          type="text"
-          id="searchInput"
-          class="search-box"
-          placeholder="Search HEI, program, region, evaluator..."
-          oninput="renderRecentTable()"
-        />
-        <button onclick="loadDashboard()">Refresh</button>
+    <div class="center">
+      <div class="panel">
+        <div class="topbar">
+          <div>
+            <h1>Agriculture Evaluation Live Dashboard</h1>
+            <div class="subtext" id="connectionStatus">Connecting to Google Sheet...</div>
+          </div>
+          <button onclick="loadData()">Refresh Data</button>
+        </div>
+
+        <div class="filters">
+          <select id="heiFilter" onchange="applyFilters()">
+            <option value="">All HEIs</option>
+          </select>
+
+          <select id="programFilter" onchange="applyFilters()">
+            <option value="">All Programs</option>
+          </select>
+
+          <select id="statusFilter" onchange="applyFilters()">
+            <option value="">All Status</option>
+          </select>
+
+          <select id="evaluatorFilter" onchange="applyFilters()">
+            <option value="">All Evaluators</option>
+          </select>
+
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Search HEI, Program, Remarks"
+            oninput="applyFilters()"
+          />
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Evaluation Score Trend</h2>
+        <canvas id="scoreTrendChart"></canvas>
+      </div>
+
+      <div class="charts-two">
+        <div class="panel">
+          <h2>Applications by HEI</h2>
+          <canvas id="heiChart"></canvas>
+        </div>
+
+        <div class="panel">
+          <h2>Qualification Summary</h2>
+          <canvas id="statusChart"></canvas>
+        </div>
+      </div>
+
+      <div class="charts-two">
+        <div class="panel">
+          <h2>Applications by Program</h2>
+          <canvas id="programChart"></canvas>
+        </div>
+
+        <div class="panel">
+          <h2>Score Distribution</h2>
+          <canvas id="scoreRangeChart"></canvas>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Live Evaluation Database</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>HEI</th>
+                <th>Program</th>
+                <th>Passing Score</th>
+                <th>Score</th>
+                <th>Status</th>
+                <th>Evaluator</th>
+                <th>Date</th>
+                <th>Remarks</th>
+                <th>Link</th>
+              </tr>
+            </thead>
+            <tbody id="recordsTable"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
-    <section class="panel">
-      <h2>Add Evaluation Record</h2>
+    <div class="right">
+      <div class="panel">
+        <h2>Totals</h2>
 
-      <form id="evaluationForm">
-        <div class="form-grid">
-          <div class="form-group">
-            <label for="region">Region</label>
-            <select id="region" required>
-              <option value="">Select Region</option>
-              <option>I</option>
-              <option>II</option>
-              <option>III</option>
-              <option>IV-A</option>
-              <option>V</option>
-              <option>VI</option>
-              <option>VII</option>
-              <option>VIII</option>
-              <option>IX</option>
-              <option>X</option>
-              <option>XI</option>
-              <option>XII</option>
-              <option>NCR</option>
-              <option>CAR</option>
-              <option>CARAGA</option>
-              <option>MIMAROPA</option>
-              <option>NIR</option>
-              <option>BARMM</option>
-            </select>
-          </div>
+        <div class="mini-number" id="totalHEIs">0</div>
+        <div class="mini-label">Total HEIs</div>
 
-          <div class="form-group">
-            <label for="hei">HEI Name</label>
-            <input id="hei" type="text" placeholder="Name of HEI" required />
-          </div>
+        <div class="mini-number" id="totalPrograms">0</div>
+        <div class="mini-label">Total Programs</div>
 
-          <div class="form-group">
-            <label for="program">Program</label>
-            <input id="program" type="text" placeholder="Program name" required />
-          </div>
+        <div class="mini-number" id="averageScore">0</div>
+        <div class="mini-label">Average Score</div>
+      </div>
 
-          <div class="form-group">
-            <label for="evaluator">Evaluator</label>
-            <input id="evaluator" type="text" placeholder="Evaluator name" />
-          </div>
+      <div class="panel">
+        <h2>Qualification Rate</h2>
+        <canvas id="rateChart"></canvas>
+        <div class="subtext" id="rateText">0% qualified rate</div>
+      </div>
 
-          <div class="form-group">
-            <label for="score">Score</label>
-            <input id="score" type="number" min="0" max="100" step="0.01" placeholder="0-100" />
-          </div>
+      <div class="panel">
+        <h2>Evaluator Workload</h2>
+        <canvas id="evaluatorChart"></canvas>
+      </div>
 
-          <div class="form-group">
-            <label for="passingScore">Passing Score</label>
-            <input id="passingScore" type="number" min="0" max="100" step="0.01" value="60" />
-          </div>
-
-          <div class="form-group">
-            <label for="status">Status</label>
-            <select id="status">
-              <option>Pending</option>
-              <option>Ongoing</option>
-              <option>Evaluated</option>
-              <option>For Validation</option>
-              <option>For Deliberation</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label for="dateEvaluated">Date Evaluated</label>
-            <input id="dateEvaluated" type="date" />
-          </div>
-
-          <div class="form-group full">
-            <label for="rubricLink">Rubric Link</label>
-            <input id="rubricLink" type="url" placeholder="Paste rubric link, if available" />
-          </div>
-
-          <div class="form-group full">
-            <label for="evidenceLink">Evidence Link</label>
-            <input id="evidenceLink" type="url" placeholder="Paste evidence/document link, if available" />
-          </div>
-
-          <div class="form-group full">
-            <label for="remarks">Remarks</label>
-            <textarea id="remarks" placeholder="Evaluation remarks or notes"></textarea>
-          </div>
+      <div class="panel">
+        <h2>Management Insight</h2>
+        <div class="insight-box" id="insightBox">
+          Waiting for live data...
         </div>
-
-        <div class="form-actions">
-          <button type="button" class="secondary" onclick="clearForm()">Clear</button>
-          <button type="submit">Submit to Database</button>
-        </div>
-
-        <div class="message" id="formMessage"></div>
-      </form>
-    </section>
-
-    <section class="cards" id="cards"></section>
-
-    <section class="grid">
-      <div class="panel">
-        <h2>Applications by Region</h2>
-        <table id="regionTable"></table>
       </div>
+    </div>
 
-      <div class="panel">
-        <h2>Decision Summary</h2>
-        <table id="decisionTable"></table>
-      </div>
-    </section>
-
-    <section class="grid">
-      <div class="panel">
-        <h2>Evaluator Summary</h2>
-        <table id="evaluatorTable"></table>
-      </div>
-
-      <div class="panel">
-        <h2>Status Summary</h2>
-        <table id="statusTable"></table>
-      </div>
-    </section>
-
-    <section class="panel">
-      <h2>Live Database Records</h2>
-      <table id="recentTable"></table>
-    </section>
-  </main>
-
-  <footer>
-    Agriculture Evaluation Database | Live Google Sheets Dashboard
-  </footer>
+  </div>
 
   <script>
-    const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwfXl68WvN7szsYgZIFGUz_kfgRrQTpGWPcZ16KeCMcVGL4uYUpg5U5TgfJ0YAxLVtybQ/exec';
+    const API_URL = "https://script.google.com/macros/s/AKfycbwfXl68WvN7szsYgZIFGUz_kfgRrQTpGWPcZ16KeCMcVGL4uYUpg5U5TgfJ0YAxLVtybQ/exec";
 
-    let dashboardData = null;
+    let allData = [];
+    let filteredData = [];
 
-    document.getElementById('evaluationForm').addEventListener('submit', function(event) {
-      event.preventDefault();
-      submitRecord();
-    });
+    let heiChart;
+    let statusChart;
+    let rateChart;
+    let scoreRangeChart;
+    let scoreTrendChart;
+    let programChart;
+    let evaluatorChart;
 
-    function loadDashboard() {
-      const callbackName = 'jsonpCallback_' + Date.now();
+    async function loadData() {
+      const status = document.getElementById("connectionStatus");
+      status.textContent = "Loading real-time data from Google Sheet...";
 
-      window[callbackName] = function(data) {
-        dashboardData = data;
-        renderDashboard(data);
-        delete window[callbackName];
-        script.remove();
-      };
+      try {
+        const response = await fetch(`${API_URL}?action=getData`);
+        const result = await response.json();
 
-      const script = document.createElement('script');
-      script.src = `${GAS_WEB_APP_URL}?mode=data&callback=${callbackName}`;
-      script.onerror = function() {
-        document.getElementById('statusText').textContent =
-          'Connection failed. Please check your Apps Script deployment access.';
-      };
+        if (!result.success) {
+          throw new Error(result.message || "Failed to load data");
+        }
 
-      document.body.appendChild(script);
+        allData = result.data || [];
+        filteredData = [...allData];
+
+        populateFilters();
+        updateDashboard(filteredData);
+
+        const updatedAt = result.updatedAt
+          ? new Date(result.updatedAt).toLocaleString()
+          : new Date().toLocaleString();
+
+        status.textContent = `Connected. Last updated: ${updatedAt}`;
+      } catch (error) {
+        console.error(error);
+        status.textContent = "Connection failed. Please check Apps Script deployment and access permission.";
+      }
     }
 
-    function submitRecord() {
-      const message = document.getElementById('formMessage');
-      message.className = 'message';
-      message.textContent = 'Submitting record...';
+    function populateFilters() {
+      const heiFilter = document.getElementById("heiFilter");
+      const programFilter = document.getElementById("programFilter");
+      const statusFilter = document.getElementById("statusFilter");
+      const evaluatorFilter = document.getElementById("evaluatorFilter");
 
-      const payload = {
-        action: 'addRecord',
-        region: document.getElementById('region').value,
-        hei: document.getElementById('hei').value,
-        program: document.getElementById('program').value,
-        rubricLink: document.getElementById('rubricLink').value,
-        evidenceLink: document.getElementById('evidenceLink').value,
-        score: document.getElementById('score').value,
-        passingScore: document.getElementById('passingScore').value,
-        evaluator: document.getElementById('evaluator').value,
-        dateEvaluated: document.getElementById('dateEvaluated').value,
-        remarks: document.getElementById('remarks').value,
-        status: document.getElementById('status').value
-      };
+      const selectedHEI = heiFilter.value;
+      const selectedProgram = programFilter.value;
+      const selectedStatus = statusFilter.value;
+      const selectedEvaluator = evaluatorFilter.value;
 
-      fetch(GAS_WEB_APP_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: {
-          'Content-Type': 'text/plain;charset=utf-8'
-        },
-        body: JSON.stringify(payload)
-      })
-      .then(function() {
-        message.className = 'message success';
-        message.textContent = 'Record submitted. Refreshing dashboard...';
-        clearForm(false);
+      const heis = [...new Set(allData.map(item => item.hei).filter(Boolean))].sort();
+      const programs = [...new Set(allData.map(item => item.program).filter(Boolean))].sort();
+      const statuses = [...new Set(allData.map(item => item.status).filter(Boolean))].sort();
+      const evaluators = [...new Set(allData.map(item => item.evaluator).filter(Boolean))].sort();
 
-        setTimeout(function() {
-          loadDashboard();
-          message.textContent = 'Record submitted successfully.';
-        }, 1500);
-      })
-      .catch(function(error) {
-        message.className = 'message error';
-        message.textContent = 'Submission failed. Please check your Apps Script deployment.';
-        console.error(error);
+      heiFilter.innerHTML = `<option value="">All HEIs</option>`;
+      programFilter.innerHTML = `<option value="">All Programs</option>`;
+      statusFilter.innerHTML = `<option value="">All Status</option>`;
+      evaluatorFilter.innerHTML = `<option value="">All Evaluators</option>`;
+
+      heis.forEach(hei => {
+        heiFilter.innerHTML += `<option value="${escapeHtml(hei)}">${escapeHtml(hei)}</option>`;
+      });
+
+      programs.forEach(program => {
+        programFilter.innerHTML += `<option value="${escapeHtml(program)}">${escapeHtml(program)}</option>`;
+      });
+
+      statuses.forEach(status => {
+        statusFilter.innerHTML += `<option value="${escapeHtml(status)}">${escapeHtml(status)}</option>`;
+      });
+
+      evaluators.forEach(evaluator => {
+        evaluatorFilter.innerHTML += `<option value="${escapeHtml(evaluator)}">${escapeHtml(evaluator)}</option>`;
+      });
+
+      heiFilter.value = selectedHEI;
+      programFilter.value = selectedProgram;
+      statusFilter.value = selectedStatus;
+      evaluatorFilter.value = selectedEvaluator;
+    }
+
+    function applyFilters() {
+      const hei = document.getElementById("heiFilter").value;
+      const program = document.getElementById("programFilter").value;
+      const status = document.getElementById("statusFilter").value;
+      const evaluator = document.getElementById("evaluatorFilter").value;
+      const search = document.getElementById("searchInput").value.toLowerCase();
+
+      filteredData = allData.filter(item => {
+        const matchesHEI = !hei || item.hei === hei;
+        const matchesProgram = !program || item.program === program;
+        const matchesStatus = !status || item.status === status;
+        const matchesEvaluator = !evaluator || item.evaluator === evaluator;
+
+        const text = `${item.hei || ""} ${item.program || ""} ${item.remarks || ""} ${item.evaluator || ""}`.toLowerCase();
+        const matchesSearch = !search || text.includes(search);
+
+        return matchesHEI && matchesProgram && matchesStatus && matchesEvaluator && matchesSearch;
+      });
+
+      updateDashboard(filteredData);
+    }
+
+    function updateDashboard(data) {
+      const totalApplications = data.length;
+      const totalHEIs = new Set(data.map(item => item.hei).filter(Boolean)).size;
+      const totalPrograms = new Set(data.map(item => item.program).filter(Boolean)).size;
+
+      const qualified = data.filter(item => item.status === "Qualified").length;
+      const notQualified = data.filter(item => item.status === "Not Qualified").length;
+      const pending = data.filter(item => item.status === "Pending Evaluation").length;
+
+      const scoredData = data.filter(item => Number(item.score || 0) > 0);
+      const averageScore = scoredData.length
+        ? (scoredData.reduce((sum, item) => sum + Number(item.score || 0), 0) / scoredData.length).toFixed(2)
+        : 0;
+
+      const qualificationRate = totalApplications
+        ? ((qualified / totalApplications) * 100).toFixed(2)
+        : 0;
+
+      document.getElementById("totalApplications").textContent = totalApplications.toLocaleString();
+      document.getElementById("qualified").textContent = qualified.toLocaleString();
+      document.getElementById("notQualified").textContent = notQualified.toLocaleString();
+      document.getElementById("pending").textContent = pending.toLocaleString();
+
+      document.getElementById("totalHEIs").textContent = totalHEIs.toLocaleString();
+      document.getElementById("totalPrograms").textContent = totalPrograms.toLocaleString();
+      document.getElementById("averageScore").textContent = averageScore;
+
+      document.getElementById("rateText").textContent = `${qualificationRate}% qualified rate`;
+
+      renderTable(data);
+      renderCharts(data, qualificationRate);
+      renderInsight(data, qualified, notQualified, pending, qualificationRate, averageScore);
+    }
+
+    function renderTable(data) {
+      const tbody = document.getElementById("recordsTable");
+      tbody.innerHTML = "";
+
+      const latest = [...data].slice(-100).reverse();
+
+      latest.forEach(item => {
+        const badgeClass = getBadgeClass(item.status);
+
+        tbody.innerHTML += `
+          <tr>
+            <td>${escapeHtml(item.hei || "")}</td>
+            <td>${escapeHtml(item.program || "")}</td>
+            <td>${escapeHtml(item.passingScore || "")}</td>
+            <td class="score-cell">${escapeHtml(item.score || "")}</td>
+            <td><span class="badge ${badgeClass}">${escapeHtml(item.status || "")}</span></td>
+            <td>${escapeHtml(item.evaluator || "")}</td>
+            <td>${escapeHtml(item.dateOfEvaluation || "")}</td>
+            <td>${escapeHtml(item.remarks || "")}</td>
+            <td>${item.applicationLink ? `<a class="link-btn" href="${escapeAttribute(item.applicationLink)}" target="_blank">Open</a>` : ""}</td>
+          </tr>
+        `;
       });
     }
 
-    function clearForm(clearMessage = true) {
-      document.getElementById('evaluationForm').reset();
-      document.getElementById('passingScore').value = 60;
-
-      if (clearMessage) {
-        document.getElementById('formMessage').textContent = '';
-        document.getElementById('formMessage').className = 'message';
-      }
+    function getBadgeClass(status) {
+      if (status === "Qualified") return "badge-qualified";
+      if (status === "Not Qualified") return "badge-not-qualified";
+      return "badge-pending";
     }
 
-    function renderDashboard(data) {
-      const s = data.summary;
+    function renderCharts(data, qualificationRate) {
+      const byHEI = countBy(data, "hei");
+      const byStatus = countBy(data, "status");
+      const byProgram = countBy(data, "program");
+      const byEvaluator = countBy(data, "evaluator");
+      const scoreRanges = buildScoreRanges(data);
 
-      document.getElementById('statusText').textContent =
-        'Last refresh: ' + data.updatedAt;
+      const topHEIs = Object.entries(byHEI)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 8);
 
-      document.getElementById('cards').innerHTML = [
-        ['Total Applications', s.totalApplications],
-        ['Unique HEIs', s.uniqueHEIs],
-        ['Regions Covered', s.regionsCovered],
-        ['Evaluated', s.evaluated],
-        ['Pending', s.pending],
-        ['Passed', s.passed]
-      ].map(item => `
-        <div class="card">
-          <div class="label">${item[0]}</div>
-          <div class="value">${item[1]}</div>
-        </div>
-      `).join('');
+      const topPrograms = Object.entries(byProgram)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 8);
 
-      renderRegionTable(data.regionSummary);
-      renderSimpleTable('decisionTable', data.decisionSummary);
-      renderSimpleTable('evaluatorTable', data.evaluatorSummary);
-      renderSimpleTable('statusTable', data.statusSummary);
-      renderRecentTable();
-    }
+      const evaluators = Object.entries(byEvaluator)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 8);
 
-    function renderRegionTable(rows) {
-      if (!rows || !rows.length) {
-        document.getElementById('regionTable').innerHTML =
-          '<tr><td>No data found.</td></tr>';
-        return;
-      }
+      const scoreTrend = data
+        .filter(item => Number(item.score || 0) > 0)
+        .map((item, index) => ({
+          label: item.dateOfEvaluation || `Record ${index + 1}`,
+          score: Number(item.score || 0)
+        }))
+        .slice(-20);
 
-      const max = Math.max(...rows.slice(1).map(row => Number(row[1]) || 0), 1);
+      destroyCharts();
 
-      document.getElementById('regionTable').innerHTML = rows.map((row, index) => {
-        if (index === 0) {
-          return `<tr>${row.map(cell => `<th>${escapeHtml(cell)}</th>`).join('')}</tr>`;
+      scoreTrendChart = new Chart(document.getElementById("scoreTrendChart"), {
+        type: "line",
+        data: {
+          labels: scoreTrend.map(item => item.label),
+          datasets: [
+            {
+              label: "Evaluation Score",
+              data: scoreTrend.map(item => item.score),
+              borderColor: "#18c6ff",
+              backgroundColor: "rgba(24,198,255,0.12)",
+              tension: 0.35,
+              fill: true
+            },
+            {
+              label: "Passing Score",
+              data: scoreTrend.map(() => 60),
+              borderColor: "#f5c84c",
+              borderDash: [6, 6],
+              tension: 0
+            }
+          ]
+        },
+        options: chartOptions()
+      });
+
+      heiChart = new Chart(document.getElementById("heiChart"), {
+        type: "bar",
+        data: {
+          labels: topHEIs.map(item => item[0]),
+          datasets: [{
+            label: "Applications",
+            data: topHEIs.map(item => item[1]),
+            backgroundColor: "#18c6ff"
+          }]
+        },
+        options: chartOptions("y")
+      });
+
+      programChart = new Chart(document.getElementById("programChart"), {
+        type: "bar",
+        data: {
+          labels: topPrograms.map(item => item[0]),
+          datasets: [{
+            label: "Applications",
+            data: topPrograms.map(item => item[1]),
+            backgroundColor: "#a78bfa"
+          }]
+        },
+        options: chartOptions("y")
+      });
+
+      statusChart = new Chart(document.getElementById("statusChart"), {
+        type: "doughnut",
+        data: {
+          labels: Object.keys(byStatus),
+          datasets: [{
+            data: Object.values(byStatus),
+            backgroundColor: ["#4ade80", "#ff5b5b", "#f5c84c", "#18c6ff"]
+          }]
+        },
+        options: doughnutOptions()
+      });
+
+      rateChart = new Chart(document.getElementById("rateChart"), {
+        type: "doughnut",
+        data: {
+          labels: ["Qualified", "Others"],
+          datasets: [{
+            data: [Number(qualificationRate), 100 - Number(qualificationRate)],
+            backgroundColor: ["#18c6ff", "#3b3f73"]
+          }]
+        },
+        options: {
+          ...doughnutOptions(),
+          cutout: "75%"
         }
+      });
 
-        const width = ((Number(row[1]) || 0) / max) * 100;
+      scoreRangeChart = new Chart(document.getElementById("scoreRangeChart"), {
+        type: "bar",
+        data: {
+          labels: Object.keys(scoreRanges),
+          datasets: [{
+            label: "Records",
+            data: Object.values(scoreRanges),
+            backgroundColor: "#f5c84c"
+          }]
+        },
+        options: chartOptions()
+      });
 
-        return `
-          <tr>
-            <td>${escapeHtml(row[0])}</td>
-            <td>
-              ${escapeHtml(row[1])}
-              <div class="bar">
-                <div class="fill" style="width:${width}%"></div>
-              </div>
-            </td>
-            <td>${escapeHtml(row[2])}</td>
-            <td>${escapeHtml(row[3])}</td>
-            <td>${escapeHtml(row[4])}</td>
-            <td>${escapeHtml(row[5])}</td>
-          </tr>
-        `;
-      }).join('');
+      evaluatorChart = new Chart(document.getElementById("evaluatorChart"), {
+        type: "bar",
+        data: {
+          labels: evaluators.map(item => item[0]),
+          datasets: [{
+            label: "Evaluated",
+            data: evaluators.map(item => item[1]),
+            backgroundColor: "#4ade80"
+          }]
+        },
+        options: chartOptions("y")
+      });
     }
 
-    function renderSimpleTable(id, rows) {
-      if (!rows || !rows.length) {
-        document.getElementById(id).innerHTML =
-          '<tr><td>No data found.</td></tr>';
-        return;
-      }
-
-      document.getElementById(id).innerHTML = rows.map((row, index) => {
-        return `
-          <tr>
-            ${row.map(cell => index === 0
-              ? `<th>${escapeHtml(cell)}</th>`
-              : `<td>${escapeHtml(cell)}</td>`
-            ).join('')}
-          </tr>
-        `;
-      }).join('');
+    function destroyCharts() {
+      if (heiChart) heiChart.destroy();
+      if (statusChart) statusChart.destroy();
+      if (rateChart) rateChart.destroy();
+      if (scoreRangeChart) scoreRangeChart.destroy();
+      if (scoreTrendChart) scoreTrendChart.destroy();
+      if (programChart) programChart.destroy();
+      if (evaluatorChart) evaluatorChart.destroy();
     }
 
-    function renderRecentTable() {
-      if (!dashboardData) return;
+    function countBy(data, field) {
+      const result = {};
 
-      const search = document.getElementById('searchInput').value.toLowerCase().trim();
-      let rows = dashboardData.recentRows || dashboardData.records || [];
+      data.forEach(item => {
+        const key = item[field] || "Unspecified";
+        result[key] = (result[key] || 0) + 1;
+      });
 
-      if (search) {
-        rows = rows.filter(row => {
-          return [
-            row.no,
-            row.region,
-            row.hei,
-            row.program,
-            row.score,
-            row.evaluator,
-            row.status,
-            row.decision
-          ].join(' ').toLowerCase().includes(search);
-        });
-      }
-
-      const headers = [
-        'No.',
-        'Region',
-        'HEI',
-        'Program',
-        'Score',
-        'Evaluator',
-        'Status',
-        'Rating',
-        'Decision'
-      ];
-
-      const body = rows.map(row => `
-        <tr>
-          <td>${escapeHtml(row.no || '')}</td>
-          <td>${escapeHtml(row.region || '')}</td>
-          <td>${escapeHtml(row.hei || '')}</td>
-          <td>${escapeHtml(row.program || '')}</td>
-          <td>${escapeHtml(row.score || '')}</td>
-          <td>${escapeHtml(row.evaluator || '')}</td>
-          <td>${escapeHtml(row.status || '')}</td>
-          <td>${escapeHtml(row.rating || '')}</td>
-          <td>${decisionPill(row.decision)}</td>
-        </tr>
-      `).join('');
-
-      document.getElementById('recentTable').innerHTML =
-        `<tr>${headers.map(header => `<th>${header}</th>`).join('')}</tr>` +
-        (body || '<tr><td colspan="9">No matching records found.</td></tr>');
+      return result;
     }
 
-    function decisionPill(value) {
-      let cls = 'pending';
+    function buildScoreRanges(data) {
+      const ranges = {
+        "90+": 0,
+        "80-89": 0,
+        "70-79": 0,
+        "60-69": 0,
+        "Below 60": 0,
+        "No Score": 0
+      };
 
-      if (value === 'Passed') cls = 'passed';
-      if (value === 'For Deliberation') cls = 'delib';
-      if (value === 'Failed') cls = 'failed';
+      data.forEach(item => {
+        const score = Number(item.score || 0);
 
-      return `<span class="pill ${cls}">${escapeHtml(value || 'Pending')}</span>`;
+        if (!score) ranges["No Score"]++;
+        else if (score >= 90) ranges["90+"]++;
+        else if (score >= 80) ranges["80-89"]++;
+        else if (score >= 70) ranges["70-79"]++;
+        else if (score >= 60) ranges["60-69"]++;
+        else ranges["Below 60"]++;
+      });
+
+      return ranges;
+    }
+
+    function renderInsight(data, qualified, notQualified, pending, qualificationRate, averageScore) {
+      const topHEI = getTopValue(countBy(data, "hei"));
+      const topProgram = getTopValue(countBy(data, "program"));
+      const topEvaluator = getTopValue(countBy(data, "evaluator"));
+
+      document.getElementById("insightBox").innerHTML = `
+        The dashboard currently shows <b>${data.length.toLocaleString()}</b> application records.
+        <br><br>
+        <b>${qualified.toLocaleString()}</b> are qualified,
+        <b>${notQualified.toLocaleString()}</b> are not qualified, and
+        <b>${pending.toLocaleString()}</b> are pending or without score.
+        <br><br>
+        The current qualification rate is <b>${qualificationRate}%</b>, with an average score of <b>${averageScore}</b>.
+        ${topHEI ? `<br><br>The HEI with the highest number of entries is <b>${escapeHtml(topHEI)}</b>.` : ""}
+        ${topProgram ? `<br><br>The most common program entry is <b>${escapeHtml(topProgram)}</b>.` : ""}
+        ${topEvaluator ? `<br><br>The most active evaluator is <b>${escapeHtml(topEvaluator)}</b>.` : ""}
+      `;
+    }
+
+    function getTopValue(obj) {
+      const entries = Object.entries(obj).filter(item => item[0] !== "Unspecified");
+      if (!entries.length) return "";
+      return entries.sort((a, b) => b[1] - a[1])[0][0];
+    }
+
+    function chartOptions(indexAxis = "x") {
+      return {
+        responsive: true,
+        maintainAspectRatio: false,
+        indexAxis,
+        plugins: {
+          legend: {
+            labels: {
+              color: "#f7f8ff"
+            }
+          }
+        },
+        scales: indexAxis === "x" ? {
+          x: {
+            ticks: {
+              color: "#aeb4d8",
+              maxRotation: 35,
+              minRotation: 0
+            },
+            grid: {
+              color: "rgba(255,255,255,0.05)"
+            }
+          },
+          y: {
+            ticks: {
+              color: "#aeb4d8"
+            },
+            grid: {
+              color: "rgba(255,255,255,0.05)"
+            },
+            beginAtZero: true
+          }
+        } : {
+          x: {
+            ticks: {
+              color: "#aeb4d8"
+            },
+            grid: {
+              color: "rgba(255,255,255,0.05)"
+            },
+            beginAtZero: true
+          },
+          y: {
+            ticks: {
+              color: "#aeb4d8"
+            },
+            grid: {
+              color: "rgba(255,255,255,0.05)"
+            }
+          }
+        }
+      };
+    }
+
+    function doughnutOptions() {
+      return {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            labels: {
+              color: "#f7f8ff"
+            }
+          }
+        }
+      };
     }
 
     function escapeHtml(value) {
       return String(value)
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;')
-        .replaceAll("'", '&#039;');
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
     }
 
-    loadDashboard();
-    setInterval(loadDashboard, 10000);
+    function escapeAttribute(value) {
+      return String(value)
+        .replaceAll('"', "%22")
+        .replaceAll("'", "%27");
+    }
+
+    loadData();
+
+    setInterval(loadData, 30000);
   </script>
 </body>
 </html>
