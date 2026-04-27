@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="night">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -20,7 +20,23 @@
       --red: #ff5b5b;
       --green: #4ade80;
       --purple: #a78bfa;
-      --border: rgba(255, 255, 255, 0.09);
+      --border: rgba(255,255,255,0.09);
+      --table-hover: rgba(255,255,255,0.06);
+    }
+
+    html[data-theme="day"] {
+      --bg: #eef3fb;
+      --card: #ffffff;
+      --card2: #f2f5fb;
+      --text: #172033;
+      --muted: #5f6b85;
+      --cyan: #0077b6;
+      --gold: #b7791f;
+      --red: #d62828;
+      --green: #218838;
+      --purple: #6d28d9;
+      --border: rgba(0,0,0,0.09);
+      --table-hover: rgba(0,0,0,0.04);
     }
 
     * {
@@ -55,21 +71,28 @@
       border-radius: 12px;
       padding: 15px;
       border: 1px solid var(--border);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.18);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.12);
     }
 
     .kpi {
-      min-height: 118px;
+      min-height: 115px;
       display: flex;
       flex-direction: column;
       justify-content: center;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .kpi:hover,
+    tr.clickable-row:hover {
+      transform: translateY(-1px);
+      background: var(--table-hover);
     }
 
     .kpi-value {
-      font-size: 43px;
+      font-size: 42px;
       font-weight: 800;
       line-height: 1;
-      letter-spacing: -1px;
     }
 
     .kpi-label {
@@ -78,17 +101,10 @@
       margin-top: 8px;
     }
 
-    .positive {
-      color: var(--green);
-    }
-
-    .negative {
-      color: var(--red);
-    }
-
-    .warning {
-      color: var(--gold);
-    }
+    .positive { color: var(--green); }
+    .negative { color: var(--red); }
+    .warning { color: var(--gold); }
+    .cyan { color: var(--cyan); }
 
     h1 {
       font-size: 22px;
@@ -98,7 +114,6 @@
     h2 {
       font-size: 15px;
       margin: 0 0 12px;
-      color: var(--text);
     }
 
     .subtext {
@@ -113,6 +128,24 @@
       align-items: center;
       gap: 12px;
       flex-wrap: wrap;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .clock-box {
+      background: var(--card2);
+      border: 1px solid var(--border);
+      padding: 9px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      color: var(--text);
+      min-width: 210px;
+      text-align: center;
     }
 
     .filters {
@@ -135,12 +168,18 @@
 
     button {
       background: var(--cyan);
-      color: #061428;
+      color: white;
       border: none;
       padding: 10px 14px;
       border-radius: 8px;
       font-weight: 800;
       cursor: pointer;
+    }
+
+    button.secondary {
+      background: var(--card2);
+      color: var(--text);
+      border: 1px solid var(--border);
     }
 
     button:hover {
@@ -154,7 +193,7 @@
     }
 
     .table-wrap {
-      max-height: 420px;
+      max-height: 430px;
       overflow: auto;
     }
 
@@ -162,7 +201,7 @@
       width: 100%;
       border-collapse: collapse;
       font-size: 12px;
-      min-width: 1150px;
+      min-width: 1200px;
     }
 
     th,
@@ -175,7 +214,7 @@
 
     th {
       color: var(--muted);
-      background: rgba(255, 255, 255, 0.04);
+      background: var(--card2);
       position: sticky;
       top: 0;
       z-index: 2;
@@ -184,6 +223,11 @@
     td:first-child,
     th:first-child {
       text-align: left;
+    }
+
+    tr.clickable-row {
+      cursor: pointer;
+      transition: 0.15s ease;
     }
 
     .badge {
@@ -196,22 +240,22 @@
     }
 
     .badge-qualified {
-      background: rgba(74, 222, 128, 0.14);
+      background: rgba(74,222,128,0.14);
       color: var(--green);
     }
 
     .badge-not-qualified {
-      background: rgba(255, 91, 91, 0.15);
+      background: rgba(255,91,91,0.15);
       color: var(--red);
     }
 
     .badge-pending {
-      background: rgba(245, 200, 76, 0.16);
+      background: rgba(245,200,76,0.16);
       color: var(--gold);
     }
 
     .mini-number {
-      font-size: 34px;
+      font-size: 32px;
       font-weight: 800;
       line-height: 1;
     }
@@ -224,7 +268,7 @@
     }
 
     .insight-box {
-      background: rgba(255, 255, 255, 0.04);
+      background: var(--card2);
       border-radius: 8px;
       padding: 12px;
       font-size: 13px;
@@ -243,11 +287,20 @@
     .link-btn {
       color: var(--cyan);
       text-decoration: none;
-      font-weight: 700;
+      font-weight: 800;
     }
 
     .link-btn:hover {
       text-decoration: underline;
+    }
+
+    .source-pill {
+      display: inline-block;
+      padding: 4px 7px;
+      border-radius: 999px;
+      background: var(--card2);
+      color: var(--muted);
+      font-size: 11px;
     }
 
     @media (max-width: 1200px) {
@@ -270,22 +323,22 @@
   <div class="dashboard">
 
     <div class="left">
-      <div class="panel kpi">
+      <div class="panel kpi" onclick="clearFilters()">
         <div class="kpi-value" id="totalApplications">0</div>
         <div class="kpi-label">Total Applications</div>
       </div>
 
-      <div class="panel kpi">
+      <div class="panel kpi" onclick="filterByStatus('Qualified')">
         <div class="kpi-value positive" id="qualified">0</div>
         <div class="kpi-label">Qualified Applications</div>
       </div>
 
-      <div class="panel kpi">
+      <div class="panel kpi" onclick="filterByStatus('Not Qualified')">
         <div class="kpi-value negative" id="notQualified">0</div>
         <div class="kpi-label">Not Qualified Applications</div>
       </div>
 
-      <div class="panel kpi">
+      <div class="panel kpi" onclick="filterByStatus('Pending Evaluation')">
         <div class="kpi-value warning" id="pending">0</div>
         <div class="kpi-label">Pending / No Score</div>
       </div>
@@ -298,10 +351,19 @@
             <h1>Live Evaluation Database Dashboard</h1>
             <div class="subtext" id="connectionStatus">Connecting to Google Sheet...</div>
           </div>
-          <button onclick="loadData()">Refresh Data</button>
+
+          <div class="top-actions">
+            <div class="clock-box" id="liveClock">Loading date and time...</div>
+            <button class="secondary" onclick="toggleTheme()" id="themeButton">Day Mode</button>
+            <button onclick="loadData()">Refresh Data</button>
+          </div>
         </div>
 
         <div class="filters">
+          <select id="sourceFilter" onchange="applyFilters()">
+            <option value="">All Databases</option>
+          </select>
+
           <select id="disciplineFilter" onchange="applyFilters()">
             <option value="">All Disciplines</option>
           </select>
@@ -342,7 +404,7 @@
 
       <div class="charts-two">
         <div class="panel">
-          <h2>Applications by Discipline</h2>
+          <h2>Applications by Discipline / Program Group</h2>
           <canvas id="disciplineChart"></canvas>
         </div>
 
@@ -378,6 +440,8 @@
 
       <div class="panel">
         <h2>Live Evaluation Database</h2>
+        <div class="subtext">Click a row or the “Open” link to view the application file/link.</div>
+        <br>
         <div class="table-wrap">
           <table>
             <thead>
@@ -392,6 +456,7 @@
                 <th>Date</th>
                 <th>Evaluator Remarks</th>
                 <th>Remarks of Result</th>
+                <th>Source</th>
                 <th>Link</th>
               </tr>
             </thead>
@@ -409,7 +474,7 @@
         <div class="mini-label">Total HEIs</div>
 
         <div class="mini-number" id="totalDisciplines">0</div>
-        <div class="mini-label">Total Disciplines</div>
+        <div class="mini-label">Total Disciplines / Program Groups</div>
 
         <div class="mini-number" id="totalPrograms">0</div>
         <div class="mini-label">Total Programs</div>
@@ -436,11 +501,27 @@
         </div>
       </div>
     </div>
-
   </div>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbzrDVon9-6Z7_2PIm6HYcyaHd6igE6hgx1Hzzj8KBC-zsOvz1COHzxmeZTfed2R_Vvm/exec";
+    /*
+      MERGED APPS SCRIPT DATABASE LINKS
+
+      You can add more Apps Script Web App URLs here.
+      Just copy and paste another object:
+      { name: "New Discipline Name", url: "YOUR_NEW_APPS_SCRIPT_URL" }
+    */
+
+    const API_SOURCES = [
+      {
+        name: "Agriculture",
+        url: "https://script.google.com/macros/s/AKfycbwfXl68WvN7szsYgZIFGUz_kfgRrQTpGWPcZ16KeCMcVGL4uYUpg5U5TgfJ0YAxLVtybQ/exec"
+      },
+      {
+        name: "Other Program",
+        url: "https://script.google.com/macros/s/AKfycbzrDVon9-6Z7_2PIm6HYcyaHd6igE6hgx1Hzzj8KBC-zsOvz1COHzxmeZTfed2R_Vvm/exec"
+      }
+    ];
 
     let allData = [];
     let filteredData = [];
@@ -455,97 +536,207 @@
     let disciplineChart;
     let remarksResultChart;
 
+    function startClock() {
+      updateClock();
+      setInterval(updateClock, 1000);
+    }
+
+    function updateClock() {
+      const now = new Date();
+
+      const options = {
+        timeZone: "Asia/Manila",
+        weekday: "short",
+        year: "numeric",
+        month: "short",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: true
+      };
+
+      document.getElementById("liveClock").textContent =
+        new Intl.DateTimeFormat("en-PH", options).format(now);
+    }
+
+    function toggleTheme() {
+      const html = document.documentElement;
+      const currentTheme = html.getAttribute("data-theme");
+      const nextTheme = currentTheme === "night" ? "day" : "night";
+
+      html.setAttribute("data-theme", nextTheme);
+      localStorage.setItem("dashboardTheme", nextTheme);
+
+      document.getElementById("themeButton").textContent =
+        nextTheme === "night" ? "Day Mode" : "Night Mode";
+
+      renderCharts(filteredData, getQualificationRate(filteredData));
+    }
+
+    function loadSavedTheme() {
+      const savedTheme = localStorage.getItem("dashboardTheme") || "night";
+      document.documentElement.setAttribute("data-theme", savedTheme);
+
+      document.getElementById("themeButton").textContent =
+        savedTheme === "night" ? "Day Mode" : "Night Mode";
+    }
+
     async function loadData() {
       const status = document.getElementById("connectionStatus");
-      status.textContent = "Loading real-time data from Google Sheet...";
+      status.textContent = "Loading merged live data from Google Sheets...";
 
       try {
-        const response = await fetch(`${API_URL}?action=getData`);
-        const result = await response.json();
+        const results = await Promise.all(
+          API_SOURCES.map(async source => {
+            try {
+              const response = await fetch(`${source.url}?action=getData`);
+              const result = await response.json();
 
-        if (!result.success) {
-          throw new Error(result.message || "Failed to load data");
-        }
+              if (!result.success) {
+                console.warn(source.name, result.message);
+                return [];
+              }
 
-        allData = result.data || [];
+              return (result.data || []).map(item => normalizeRecord(item, source.name));
+            } catch (error) {
+              console.error("Failed source:", source.name, error);
+              return [];
+            }
+          })
+        );
+
+        allData = results.flat();
         filteredData = [...allData];
 
         populateFilters();
         updateDashboard(filteredData);
 
-        const updatedAt = result.updatedAt
-          ? new Date(result.updatedAt).toLocaleString()
-          : new Date().toLocaleString();
+        status.textContent =
+          `Connected. Merged ${API_SOURCES.length} database source(s). Last updated: ${new Date().toLocaleString()}`;
 
-        status.textContent = `Connected. Last updated: ${updatedAt}`;
       } catch (error) {
         console.error(error);
-        status.textContent = "Connection failed. Please check Apps Script deployment and access permission.";
+        status.textContent = "Connection failed. Please check Apps Script URLs and deployment access.";
       }
     }
 
+    function normalizeRecord(item, sourceName) {
+      const score = Number(item.score || item.Score || 0);
+      const passingScore = Number(item.passingScore || item["Passing Score"] || 60);
+
+      let status = item.status || item.Status || "Pending Evaluation";
+
+      if (!item.status && !item.Status) {
+        if (score >= passingScore && score > 0) status = "Qualified";
+        else if (score > 0 && score < passingScore) status = "Not Qualified";
+      }
+
+      const remarks = item.remarks || item["Remarks"] || item.evaluatorRemarks || "";
+
+      return {
+        hei: item.hei || item.HEI || item["HEI"] || item["Higher Education Institution"] || "",
+        discipline: item.discipline || item.Discipline || sourceName || "Unspecified",
+        program: item.program || item.Program || "",
+        evaluationRubric: item.evaluationRubric || item["Evaluation Rubric"] || "",
+        applicationLink: item.applicationLink || item["Application Link"] || item.link || "",
+        passingScore: passingScore,
+        score: score,
+        evaluator: item.evaluator || item.Evaluator || "",
+        dateOfEvaluation: item.dateOfEvaluation || item["Date of Evaluation"] || "",
+        remarks: remarks,
+        remarksOfResult: item.remarksOfResult || generateRemarksOfResult(remarks, status, score, passingScore),
+        status: status,
+        source: sourceName
+      };
+    }
+
+    function generateRemarksOfResult(remarks, status, score, passingScore) {
+      const text = String(remarks || "").toLowerCase();
+
+      if (!text && status === "Pending Evaluation") return "Pending Evaluation";
+
+      if (
+        text.includes("complete") ||
+        text.includes("complied") ||
+        text.includes("satisfactory") ||
+        text.includes("passed") ||
+        text.includes("qualified") ||
+        text.includes("recommended")
+      ) {
+        return "Qualified / For Endorsement";
+      }
+
+      if (
+        text.includes("missing") ||
+        text.includes("incomplete") ||
+        text.includes("lack") ||
+        text.includes("lacking") ||
+        text.includes("deficiency") ||
+        text.includes("deficiencies") ||
+        text.includes("for compliance")
+      ) {
+        return "For Compliance";
+      }
+
+      if (
+        text.includes("validate") ||
+        text.includes("validation") ||
+        text.includes("review") ||
+        text.includes("re-evaluation") ||
+        text.includes("reevaluation") ||
+        text.includes("further evaluation")
+      ) {
+        return "Subject for Re-evaluation";
+      }
+
+      if (
+        text.includes("not qualified") ||
+        text.includes("failed") ||
+        text.includes("did not meet") ||
+        text.includes("below") ||
+        text.includes("insufficient")
+      ) {
+        return "Not Qualified";
+      }
+
+      if (score > 0 && score < passingScore) return "Did Not Meet Passing Score";
+      if (score >= passingScore && score > 0) return "Qualified / For Endorsement";
+
+      return "For Review";
+    }
+
     function populateFilters() {
-      const disciplineFilter = document.getElementById("disciplineFilter");
-      const heiFilter = document.getElementById("heiFilter");
-      const programFilter = document.getElementById("programFilter");
-      const statusFilter = document.getElementById("statusFilter");
-      const remarksResultFilter = document.getElementById("remarksResultFilter");
-      const evaluatorFilter = document.getElementById("evaluatorFilter");
+      fillSelect("sourceFilter", "All Databases", uniqueValues("source"));
+      fillSelect("disciplineFilter", "All Disciplines", uniqueValues("discipline"));
+      fillSelect("heiFilter", "All HEIs", uniqueValues("hei"));
+      fillSelect("programFilter", "All Programs", uniqueValues("program"));
+      fillSelect("statusFilter", "All Status", uniqueValues("status"));
+      fillSelect("remarksResultFilter", "All Remarks of Result", uniqueValues("remarksOfResult"));
+      fillSelect("evaluatorFilter", "All Evaluators", uniqueValues("evaluator"));
+    }
 
-      const selectedDiscipline = disciplineFilter.value;
-      const selectedHEI = heiFilter.value;
-      const selectedProgram = programFilter.value;
-      const selectedStatus = statusFilter.value;
-      const selectedRemarksResult = remarksResultFilter.value;
-      const selectedEvaluator = evaluatorFilter.value;
+    function fillSelect(id, defaultText, values) {
+      const select = document.getElementById(id);
+      const currentValue = select.value;
 
-      const disciplines = [...new Set(allData.map(item => item.discipline).filter(Boolean))].sort();
-      const heis = [...new Set(allData.map(item => item.hei).filter(Boolean))].sort();
-      const programs = [...new Set(allData.map(item => item.program).filter(Boolean))].sort();
-      const statuses = [...new Set(allData.map(item => item.status).filter(Boolean))].sort();
-      const remarksResults = [...new Set(allData.map(item => item.remarksOfResult).filter(Boolean))].sort();
-      const evaluators = [...new Set(allData.map(item => item.evaluator).filter(Boolean))].sort();
+      select.innerHTML = `<option value="">${defaultText}</option>`;
 
-      disciplineFilter.innerHTML = `<option value="">All Disciplines</option>`;
-      heiFilter.innerHTML = `<option value="">All HEIs</option>`;
-      programFilter.innerHTML = `<option value="">All Programs</option>`;
-      statusFilter.innerHTML = `<option value="">All Status</option>`;
-      remarksResultFilter.innerHTML = `<option value="">All Remarks of Result</option>`;
-      evaluatorFilter.innerHTML = `<option value="">All Evaluators</option>`;
-
-      disciplines.forEach(item => {
-        disciplineFilter.innerHTML += `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`;
+      values.forEach(value => {
+        select.innerHTML += `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`;
       });
 
-      heis.forEach(item => {
-        heiFilter.innerHTML += `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`;
-      });
+      if (values.includes(currentValue)) {
+        select.value = currentValue;
+      }
+    }
 
-      programs.forEach(item => {
-        programFilter.innerHTML += `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`;
-      });
-
-      statuses.forEach(item => {
-        statusFilter.innerHTML += `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`;
-      });
-
-      remarksResults.forEach(item => {
-        remarksResultFilter.innerHTML += `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`;
-      });
-
-      evaluators.forEach(item => {
-        evaluatorFilter.innerHTML += `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`;
-      });
-
-      disciplineFilter.value = selectedDiscipline;
-      heiFilter.value = selectedHEI;
-      programFilter.value = selectedProgram;
-      statusFilter.value = selectedStatus;
-      remarksResultFilter.value = selectedRemarksResult;
-      evaluatorFilter.value = selectedEvaluator;
+    function uniqueValues(field) {
+      return [...new Set(allData.map(item => item[field]).filter(Boolean))].sort();
     }
 
     function applyFilters() {
+      const source = document.getElementById("sourceFilter").value;
       const discipline = document.getElementById("disciplineFilter").value;
       const hei = document.getElementById("heiFilter").value;
       const program = document.getElementById("programFilter").value;
@@ -555,13 +746,6 @@
       const search = document.getElementById("searchInput").value.toLowerCase();
 
       filteredData = allData.filter(item => {
-        const matchesDiscipline = !discipline || item.discipline === discipline;
-        const matchesHEI = !hei || item.hei === hei;
-        const matchesProgram = !program || item.program === program;
-        const matchesStatus = !status || item.status === status;
-        const matchesRemarksResult = !remarksResult || item.remarksOfResult === remarksResult;
-        const matchesEvaluator = !evaluator || item.evaluator === evaluator;
-
         const text = `
           ${item.hei || ""}
           ${item.discipline || ""}
@@ -569,20 +753,33 @@
           ${item.remarks || ""}
           ${item.remarksOfResult || ""}
           ${item.evaluator || ""}
+          ${item.source || ""}
         `.toLowerCase();
 
-        const matchesSearch = !search || text.includes(search);
-
-        return matchesDiscipline &&
-          matchesHEI &&
-          matchesProgram &&
-          matchesStatus &&
-          matchesRemarksResult &&
-          matchesEvaluator &&
-          matchesSearch;
+        return (!source || item.source === source) &&
+          (!discipline || item.discipline === discipline) &&
+          (!hei || item.hei === hei) &&
+          (!program || item.program === program) &&
+          (!status || item.status === status) &&
+          (!remarksResult || item.remarksOfResult === remarksResult) &&
+          (!evaluator || item.evaluator === evaluator) &&
+          (!search || text.includes(search));
       });
 
       updateDashboard(filteredData);
+    }
+
+    function filterByStatus(status) {
+      document.getElementById("statusFilter").value = status;
+      applyFilters();
+    }
+
+    function clearFilters() {
+      ["sourceFilter", "disciplineFilter", "heiFilter", "programFilter", "statusFilter", "remarksResultFilter", "evaluatorFilter"]
+        .forEach(id => document.getElementById(id).value = "");
+
+      document.getElementById("searchInput").value = "";
+      applyFilters();
     }
 
     function updateDashboard(data) {
@@ -600,9 +797,7 @@
         ? (scoredData.reduce((sum, item) => sum + Number(item.score || 0), 0) / scoredData.length).toFixed(2)
         : 0;
 
-      const qualificationRate = totalApplications
-        ? ((qualified / totalApplications) * 100).toFixed(2)
-        : 0;
+      const qualificationRate = getQualificationRate(data);
 
       document.getElementById("totalApplications").textContent = totalApplications.toLocaleString();
       document.getElementById("qualified").textContent = qualified.toLocaleString();
@@ -621,17 +816,24 @@
       renderInsight(data, qualified, notQualified, pending, qualificationRate, averageScore);
     }
 
+    function getQualificationRate(data) {
+      const total = data.length;
+      const qualified = data.filter(item => item.status === "Qualified").length;
+      return total ? ((qualified / total) * 100).toFixed(2) : 0;
+    }
+
     function renderTable(data) {
       const tbody = document.getElementById("recordsTable");
       tbody.innerHTML = "";
 
-      const latest = [...data].slice(-150).reverse();
+      const latest = [...data].slice(-200).reverse();
 
       latest.forEach(item => {
         const badgeClass = getBadgeClass(item.status);
+        const link = item.applicationLink || "";
 
         tbody.innerHTML += `
-          <tr>
+          <tr class="clickable-row" onclick="openRecord('${escapeJs(link)}')">
             <td>${escapeHtml(item.hei || "")}</td>
             <td>${escapeHtml(item.discipline || "")}</td>
             <td>${escapeHtml(item.program || "")}</td>
@@ -642,10 +844,17 @@
             <td>${escapeHtml(item.dateOfEvaluation || "")}</td>
             <td>${escapeHtml(item.remarks || "")}</td>
             <td>${escapeHtml(item.remarksOfResult || "")}</td>
-            <td>${item.applicationLink ? `<a class="link-btn" href="${escapeAttribute(item.applicationLink)}" target="_blank">Open</a>` : ""}</td>
+            <td><span class="source-pill">${escapeHtml(item.source || "")}</span></td>
+            <td>${link ? `<a class="link-btn" href="${escapeAttribute(link)}" target="_blank" onclick="event.stopPropagation()">Open</a>` : ""}</td>
           </tr>
         `;
       });
+    }
+
+    function openRecord(link) {
+      if (link && link !== "undefined" && link !== "null") {
+        window.open(link, "_blank");
+      }
     }
 
     function getBadgeClass(status) {
@@ -663,11 +872,11 @@
       const byRemarksOfResult = countBy(data, "remarksOfResult");
       const scoreRanges = buildScoreRanges(data);
 
-      const topDisciplines = Object.entries(byDiscipline).sort((a, b) => b[1] - a[1]).slice(0, 10);
-      const topHEIs = Object.entries(byHEI).sort((a, b) => b[1] - a[1]).slice(0, 8);
-      const topPrograms = Object.entries(byProgram).sort((a, b) => b[1] - a[1]).slice(0, 8);
-      const evaluators = Object.entries(byEvaluator).sort((a, b) => b[1] - a[1]).slice(0, 8);
-      const remarksResults = Object.entries(byRemarksOfResult).sort((a, b) => b[1] - a[1]).slice(0, 8);
+      const topDisciplines = topEntries(byDiscipline, 10);
+      const topHEIs = topEntries(byHEI, 8);
+      const topPrograms = topEntries(byProgram, 8);
+      const evaluators = topEntries(byEvaluator, 8);
+      const remarksResults = topEntries(byRemarksOfResult, 8);
 
       const scoreTrend = data
         .filter(item => Number(item.score || 0) > 0)
@@ -679,146 +888,90 @@
 
       destroyCharts();
 
-      scoreTrendChart = new Chart(document.getElementById("scoreTrendChart"), {
-        type: "line",
-        data: {
-          labels: scoreTrend.map(item => item.label),
-          datasets: [
-            {
-              label: "Evaluation Score",
-              data: scoreTrend.map(item => item.score),
-              borderColor: "#18c6ff",
-              backgroundColor: "rgba(24,198,255,0.12)",
-              tension: 0.35,
-              fill: true
-            },
-            {
-              label: "Passing Score",
-              data: scoreTrend.map(() => 60),
-              borderColor: "#f5c84c",
-              borderDash: [6, 6],
-              tension: 0
-            }
-          ]
-        },
-        options: chartOptions()
-      });
+      scoreTrendChart = makeChart("scoreTrendChart", "line",
+        scoreTrend.map(item => item.label),
+        [
+          {
+            label: "Evaluation Score",
+            data: scoreTrend.map(item => item.score),
+            borderColor: "#18c6ff",
+            backgroundColor: "rgba(24,198,255,0.12)",
+            tension: 0.35,
+            fill: true
+          },
+          {
+            label: "Passing Score",
+            data: scoreTrend.map(() => 60),
+            borderColor: "#f5c84c",
+            borderDash: [6, 6],
+            tension: 0
+          }
+        ],
+        chartOptions()
+      );
 
-      disciplineChart = new Chart(document.getElementById("disciplineChart"), {
-        type: "bar",
-        data: {
-          labels: topDisciplines.map(item => item[0]),
-          datasets: [{
-            label: "Applications",
-            data: topDisciplines.map(item => item[1]),
-            backgroundColor: "#18c6ff"
-          }]
-        },
-        options: chartOptions("y")
-      });
+      disciplineChart = makeChart("disciplineChart", "bar",
+        topDisciplines.map(item => item[0]),
+        [{ label: "Applications", data: topDisciplines.map(item => item[1]), backgroundColor: "#18c6ff" }],
+        chartOptions("y")
+      );
 
-      heiChart = new Chart(document.getElementById("heiChart"), {
-        type: "bar",
-        data: {
-          labels: topHEIs.map(item => item[0]),
-          datasets: [{
-            label: "Applications",
-            data: topHEIs.map(item => item[1]),
-            backgroundColor: "#a78bfa"
-          }]
-        },
-        options: chartOptions("y")
-      });
+      heiChart = makeChart("heiChart", "bar",
+        topHEIs.map(item => item[0]),
+        [{ label: "Applications", data: topHEIs.map(item => item[1]), backgroundColor: "#a78bfa" }],
+        chartOptions("y")
+      );
 
-      programChart = new Chart(document.getElementById("programChart"), {
-        type: "bar",
-        data: {
-          labels: topPrograms.map(item => item[0]),
-          datasets: [{
-            label: "Applications",
-            data: topPrograms.map(item => item[1]),
-            backgroundColor: "#f5c84c"
-          }]
-        },
-        options: chartOptions("y")
-      });
+      programChart = makeChart("programChart", "bar",
+        topPrograms.map(item => item[0]),
+        [{ label: "Applications", data: topPrograms.map(item => item[1]), backgroundColor: "#f5c84c" }],
+        chartOptions("y")
+      );
 
-      statusChart = new Chart(document.getElementById("statusChart"), {
-        type: "doughnut",
-        data: {
-          labels: Object.keys(byStatus),
-          datasets: [{
-            data: Object.values(byStatus),
-            backgroundColor: ["#4ade80", "#ff5b5b", "#f5c84c", "#18c6ff"]
-          }]
-        },
-        options: doughnutOptions()
-      });
+      evaluatorChart = makeChart("evaluatorChart", "bar",
+        evaluators.map(item => item[0]),
+        [{ label: "Evaluated", data: evaluators.map(item => item[1]), backgroundColor: "#4ade80" }],
+        chartOptions("y")
+      );
 
-      remarksResultChart = new Chart(document.getElementById("remarksResultChart"), {
-        type: "doughnut",
-        data: {
-          labels: remarksResults.map(item => item[0]),
-          datasets: [{
-            data: remarksResults.map(item => item[1]),
-            backgroundColor: ["#18c6ff", "#4ade80", "#f5c84c", "#ff5b5b", "#a78bfa", "#38bdf8"]
-          }]
-        },
-        options: doughnutOptions()
-      });
+      statusChart = makeChart("statusChart", "doughnut",
+        Object.keys(byStatus),
+        [{ data: Object.values(byStatus), backgroundColor: ["#4ade80", "#ff5b5b", "#f5c84c", "#18c6ff"] }],
+        doughnutOptions()
+      );
 
-      rateChart = new Chart(document.getElementById("rateChart"), {
-        type: "doughnut",
-        data: {
-          labels: ["Qualified", "Others"],
-          datasets: [{
-            data: [Number(qualificationRate), 100 - Number(qualificationRate)],
-            backgroundColor: ["#18c6ff", "#3b3f73"]
-          }]
-        },
-        options: {
-          ...doughnutOptions(),
-          cutout: "75%"
-        }
-      });
+      remarksResultChart = makeChart("remarksResultChart", "doughnut",
+        remarksResults.map(item => item[0]),
+        [{ data: remarksResults.map(item => item[1]), backgroundColor: ["#18c6ff", "#4ade80", "#f5c84c", "#ff5b5b", "#a78bfa", "#38bdf8"] }],
+        doughnutOptions()
+      );
 
-      scoreRangeChart = new Chart(document.getElementById("scoreRangeChart"), {
-        type: "bar",
-        data: {
-          labels: Object.keys(scoreRanges),
-          datasets: [{
-            label: "Records",
-            data: Object.values(scoreRanges),
-            backgroundColor: "#f5c84c"
-          }]
-        },
-        options: chartOptions()
-      });
+      rateChart = makeChart("rateChart", "doughnut",
+        ["Qualified", "Others"],
+        [{ data: [Number(qualificationRate), 100 - Number(qualificationRate)], backgroundColor: ["#18c6ff", "#3b3f73"] }],
+        { ...doughnutOptions(), cutout: "75%" }
+      );
 
-      evaluatorChart = new Chart(document.getElementById("evaluatorChart"), {
-        type: "bar",
-        data: {
-          labels: evaluators.map(item => item[0]),
-          datasets: [{
-            label: "Evaluated",
-            data: evaluators.map(item => item[1]),
-            backgroundColor: "#4ade80"
-          }]
-        },
-        options: chartOptions("y")
+      scoreRangeChart = makeChart("scoreRangeChart", "bar",
+        Object.keys(scoreRanges),
+        [{ label: "Records", data: Object.values(scoreRanges), backgroundColor: "#f5c84c" }],
+        chartOptions()
+      );
+    }
+
+    function makeChart(id, type, labels, datasets, options) {
+      return new Chart(document.getElementById(id), {
+        type,
+        data: { labels, datasets },
+        options
       });
     }
 
     function destroyCharts() {
-      if (heiChart) heiChart.destroy();
-      if (statusChart) statusChart.destroy();
-      if (rateChart) rateChart.destroy();
-      if (scoreRangeChart) scoreRangeChart.destroy();
-      if (scoreTrendChart) scoreTrendChart.destroy();
-      if (programChart) programChart.destroy();
-      if (evaluatorChart) evaluatorChart.destroy();
-      if (disciplineChart) disciplineChart.destroy();
-      if (remarksResultChart) remarksResultChart.destroy();
+      [heiChart, statusChart, rateChart, scoreRangeChart, scoreTrendChart, programChart, evaluatorChart, disciplineChart, remarksResultChart]
+        .forEach(chart => {
+          if (chart) chart.destroy();
+        });
     }
 
     function countBy(data, field) {
@@ -828,6 +981,10 @@
         result[key] = (result[key] || 0) + 1;
       });
       return result;
+    }
+
+    function topEntries(obj, limit) {
+      return Object.entries(obj).sort((a, b) => b[1] - a[1]).slice(0, limit);
     }
 
     function buildScoreRanges(data) {
@@ -855,20 +1012,22 @@
     }
 
     function renderInsight(data, qualified, notQualified, pending, qualificationRate, averageScore) {
+      const topSource = getTopValue(countBy(data, "source"));
       const topDiscipline = getTopValue(countBy(data, "discipline"));
       const topHEI = getTopValue(countBy(data, "hei"));
       const topProgram = getTopValue(countBy(data, "program"));
       const topRemarksResult = getTopValue(countBy(data, "remarksOfResult"));
 
       document.getElementById("insightBox").innerHTML = `
-        The dashboard currently shows <b>${data.length.toLocaleString()}</b> application records.
+        The merged dashboard currently shows <b>${data.length.toLocaleString()}</b> application records.
         <br><br>
         <b>${qualified.toLocaleString()}</b> are qualified,
         <b>${notQualified.toLocaleString()}</b> are not qualified, and
         <b>${pending.toLocaleString()}</b> are pending or without score.
         <br><br>
         The current qualification rate is <b>${qualificationRate}%</b>, with an average score of <b>${averageScore}</b>.
-        ${topDiscipline ? `<br><br>The discipline with the highest number of entries is <b>${escapeHtml(topDiscipline)}</b>.` : ""}
+        ${topSource ? `<br><br>The database source with the highest number of entries is <b>${escapeHtml(topSource)}</b>.` : ""}
+        ${topDiscipline ? `<br><br>The leading discipline/program group is <b>${escapeHtml(topDiscipline)}</b>.` : ""}
         ${topHEI ? `<br><br>The HEI with the highest number of entries is <b>${escapeHtml(topHEI)}</b>.` : ""}
         ${topProgram ? `<br><br>The most common program entry is <b>${escapeHtml(topProgram)}</b>.` : ""}
         ${topRemarksResult ? `<br><br>The most common remarks of result is <b>${escapeHtml(topRemarksResult)}</b>.` : ""}
@@ -882,68 +1041,37 @@
     }
 
     function chartOptions(indexAxis = "x") {
+      const textColor = getComputedStyle(document.documentElement).getPropertyValue("--muted").trim();
+      const gridColor = getComputedStyle(document.documentElement).getPropertyValue("--border").trim();
+
       return {
         responsive: true,
         maintainAspectRatio: false,
         indexAxis,
         plugins: {
           legend: {
-            labels: {
-              color: "#f7f8ff"
-            }
+            labels: { color: textColor }
           }
         },
         scales: indexAxis === "x" ? {
-          x: {
-            ticks: {
-              color: "#aeb4d8",
-              maxRotation: 35,
-              minRotation: 0
-            },
-            grid: {
-              color: "rgba(255,255,255,0.05)"
-            }
-          },
-          y: {
-            ticks: {
-              color: "#aeb4d8"
-            },
-            grid: {
-              color: "rgba(255,255,255,0.05)"
-            },
-            beginAtZero: true
-          }
+          x: { ticks: { color: textColor, maxRotation: 35 }, grid: { color: gridColor } },
+          y: { ticks: { color: textColor }, grid: { color: gridColor }, beginAtZero: true }
         } : {
-          x: {
-            ticks: {
-              color: "#aeb4d8"
-            },
-            grid: {
-              color: "rgba(255,255,255,0.05)"
-            },
-            beginAtZero: true
-          },
-          y: {
-            ticks: {
-              color: "#aeb4d8"
-            },
-            grid: {
-              color: "rgba(255,255,255,0.05)"
-            }
-          }
+          x: { ticks: { color: textColor }, grid: { color: gridColor }, beginAtZero: true },
+          y: { ticks: { color: textColor }, grid: { color: gridColor } }
         }
       };
     }
 
     function doughnutOptions() {
+      const textColor = getComputedStyle(document.documentElement).getPropertyValue("--muted").trim();
+
       return {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
           legend: {
-            labels: {
-              color: "#f7f8ff"
-            }
+            labels: { color: textColor }
           }
         }
       };
@@ -964,7 +1092,17 @@
         .replaceAll("'", "%27");
     }
 
+    function escapeJs(value) {
+      return String(value || "")
+        .replaceAll("\\", "\\\\")
+        .replaceAll("'", "\\'")
+        .replaceAll('"', '\\"');
+    }
+
+    loadSavedTheme();
+    startClock();
     loadData();
+
     setInterval(loadData, 30000);
   </script>
 </body>
