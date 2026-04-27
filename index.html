@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>Agriculture Evaluation Live Dashboard</title>
+  <title>Live Evaluation Database Dashboard</title>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -154,7 +154,7 @@
     }
 
     .table-wrap {
-      max-height: 380px;
+      max-height: 420px;
       overflow: auto;
     }
 
@@ -162,6 +162,7 @@
       width: 100%;
       border-collapse: collapse;
       font-size: 12px;
+      min-width: 1150px;
     }
 
     th,
@@ -249,19 +250,12 @@
       text-decoration: underline;
     }
 
-    .small-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-
     @media (max-width: 1200px) {
       .dashboard {
         grid-template-columns: 1fr;
       }
 
-      .charts-two,
-      .small-grid {
+      .charts-two {
         grid-template-columns: 1fr;
       }
 
@@ -301,13 +295,17 @@
       <div class="panel">
         <div class="topbar">
           <div>
-            <h1>Agriculture Evaluation Live Dashboard</h1>
+            <h1>Live Evaluation Database Dashboard</h1>
             <div class="subtext" id="connectionStatus">Connecting to Google Sheet...</div>
           </div>
           <button onclick="loadData()">Refresh Data</button>
         </div>
 
         <div class="filters">
+          <select id="disciplineFilter" onchange="applyFilters()">
+            <option value="">All Disciplines</option>
+          </select>
+
           <select id="heiFilter" onchange="applyFilters()">
             <option value="">All HEIs</option>
           </select>
@@ -320,6 +318,10 @@
             <option value="">All Status</option>
           </select>
 
+          <select id="remarksResultFilter" onchange="applyFilters()">
+            <option value="">All Remarks of Result</option>
+          </select>
+
           <select id="evaluatorFilter" onchange="applyFilters()">
             <option value="">All Evaluators</option>
           </select>
@@ -327,7 +329,7 @@
           <input
             type="text"
             id="searchInput"
-            placeholder="Search HEI, Program, Remarks"
+            placeholder="Search HEI, Discipline, Program, Remarks"
             oninput="applyFilters()"
           />
         </div>
@@ -340,13 +342,25 @@
 
       <div class="charts-two">
         <div class="panel">
-          <h2>Applications by HEI</h2>
-          <canvas id="heiChart"></canvas>
+          <h2>Applications by Discipline</h2>
+          <canvas id="disciplineChart"></canvas>
         </div>
 
         <div class="panel">
           <h2>Qualification Summary</h2>
           <canvas id="statusChart"></canvas>
+        </div>
+      </div>
+
+      <div class="charts-two">
+        <div class="panel">
+          <h2>Applications by HEI</h2>
+          <canvas id="heiChart"></canvas>
+        </div>
+
+        <div class="panel">
+          <h2>Remarks of Result Summary</h2>
+          <canvas id="remarksResultChart"></canvas>
         </div>
       </div>
 
@@ -369,13 +383,15 @@
             <thead>
               <tr>
                 <th>HEI</th>
+                <th>Discipline</th>
                 <th>Program</th>
                 <th>Passing Score</th>
                 <th>Score</th>
                 <th>Status</th>
                 <th>Evaluator</th>
                 <th>Date</th>
-                <th>Remarks</th>
+                <th>Evaluator Remarks</th>
+                <th>Remarks of Result</th>
                 <th>Link</th>
               </tr>
             </thead>
@@ -391,6 +407,9 @@
 
         <div class="mini-number" id="totalHEIs">0</div>
         <div class="mini-label">Total HEIs</div>
+
+        <div class="mini-number" id="totalDisciplines">0</div>
+        <div class="mini-label">Total Disciplines</div>
 
         <div class="mini-number" id="totalPrograms">0</div>
         <div class="mini-label">Total Programs</div>
@@ -421,7 +440,7 @@
   </div>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbwfXl68WvN7szsYgZIFGUz_kfgRrQTpGWPcZ16KeCMcVGL4uYUpg5U5TgfJ0YAxLVtybQ/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbzrDVon9-6Z7_2PIm6HYcyaHd6igE6hgx1Hzzj8KBC-zsOvz1COHzxmeZTfed2R_Vvm/exec";
 
     let allData = [];
     let filteredData = [];
@@ -433,6 +452,8 @@
     let scoreTrendChart;
     let programChart;
     let evaluatorChart;
+    let disciplineChart;
+    let remarksResultChart;
 
     async function loadData() {
       const status = document.getElementById("connectionStatus");
@@ -464,65 +485,101 @@
     }
 
     function populateFilters() {
+      const disciplineFilter = document.getElementById("disciplineFilter");
       const heiFilter = document.getElementById("heiFilter");
       const programFilter = document.getElementById("programFilter");
       const statusFilter = document.getElementById("statusFilter");
+      const remarksResultFilter = document.getElementById("remarksResultFilter");
       const evaluatorFilter = document.getElementById("evaluatorFilter");
 
+      const selectedDiscipline = disciplineFilter.value;
       const selectedHEI = heiFilter.value;
       const selectedProgram = programFilter.value;
       const selectedStatus = statusFilter.value;
+      const selectedRemarksResult = remarksResultFilter.value;
       const selectedEvaluator = evaluatorFilter.value;
 
+      const disciplines = [...new Set(allData.map(item => item.discipline).filter(Boolean))].sort();
       const heis = [...new Set(allData.map(item => item.hei).filter(Boolean))].sort();
       const programs = [...new Set(allData.map(item => item.program).filter(Boolean))].sort();
       const statuses = [...new Set(allData.map(item => item.status).filter(Boolean))].sort();
+      const remarksResults = [...new Set(allData.map(item => item.remarksOfResult).filter(Boolean))].sort();
       const evaluators = [...new Set(allData.map(item => item.evaluator).filter(Boolean))].sort();
 
+      disciplineFilter.innerHTML = `<option value="">All Disciplines</option>`;
       heiFilter.innerHTML = `<option value="">All HEIs</option>`;
       programFilter.innerHTML = `<option value="">All Programs</option>`;
       statusFilter.innerHTML = `<option value="">All Status</option>`;
+      remarksResultFilter.innerHTML = `<option value="">All Remarks of Result</option>`;
       evaluatorFilter.innerHTML = `<option value="">All Evaluators</option>`;
 
-      heis.forEach(hei => {
-        heiFilter.innerHTML += `<option value="${escapeHtml(hei)}">${escapeHtml(hei)}</option>`;
+      disciplines.forEach(item => {
+        disciplineFilter.innerHTML += `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`;
       });
 
-      programs.forEach(program => {
-        programFilter.innerHTML += `<option value="${escapeHtml(program)}">${escapeHtml(program)}</option>`;
+      heis.forEach(item => {
+        heiFilter.innerHTML += `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`;
       });
 
-      statuses.forEach(status => {
-        statusFilter.innerHTML += `<option value="${escapeHtml(status)}">${escapeHtml(status)}</option>`;
+      programs.forEach(item => {
+        programFilter.innerHTML += `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`;
       });
 
-      evaluators.forEach(evaluator => {
-        evaluatorFilter.innerHTML += `<option value="${escapeHtml(evaluator)}">${escapeHtml(evaluator)}</option>`;
+      statuses.forEach(item => {
+        statusFilter.innerHTML += `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`;
       });
 
+      remarksResults.forEach(item => {
+        remarksResultFilter.innerHTML += `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`;
+      });
+
+      evaluators.forEach(item => {
+        evaluatorFilter.innerHTML += `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`;
+      });
+
+      disciplineFilter.value = selectedDiscipline;
       heiFilter.value = selectedHEI;
       programFilter.value = selectedProgram;
       statusFilter.value = selectedStatus;
+      remarksResultFilter.value = selectedRemarksResult;
       evaluatorFilter.value = selectedEvaluator;
     }
 
     function applyFilters() {
+      const discipline = document.getElementById("disciplineFilter").value;
       const hei = document.getElementById("heiFilter").value;
       const program = document.getElementById("programFilter").value;
       const status = document.getElementById("statusFilter").value;
+      const remarksResult = document.getElementById("remarksResultFilter").value;
       const evaluator = document.getElementById("evaluatorFilter").value;
       const search = document.getElementById("searchInput").value.toLowerCase();
 
       filteredData = allData.filter(item => {
+        const matchesDiscipline = !discipline || item.discipline === discipline;
         const matchesHEI = !hei || item.hei === hei;
         const matchesProgram = !program || item.program === program;
         const matchesStatus = !status || item.status === status;
+        const matchesRemarksResult = !remarksResult || item.remarksOfResult === remarksResult;
         const matchesEvaluator = !evaluator || item.evaluator === evaluator;
 
-        const text = `${item.hei || ""} ${item.program || ""} ${item.remarks || ""} ${item.evaluator || ""}`.toLowerCase();
+        const text = `
+          ${item.hei || ""}
+          ${item.discipline || ""}
+          ${item.program || ""}
+          ${item.remarks || ""}
+          ${item.remarksOfResult || ""}
+          ${item.evaluator || ""}
+        `.toLowerCase();
+
         const matchesSearch = !search || text.includes(search);
 
-        return matchesHEI && matchesProgram && matchesStatus && matchesEvaluator && matchesSearch;
+        return matchesDiscipline &&
+          matchesHEI &&
+          matchesProgram &&
+          matchesStatus &&
+          matchesRemarksResult &&
+          matchesEvaluator &&
+          matchesSearch;
       });
 
       updateDashboard(filteredData);
@@ -532,6 +589,7 @@
       const totalApplications = data.length;
       const totalHEIs = new Set(data.map(item => item.hei).filter(Boolean)).size;
       const totalPrograms = new Set(data.map(item => item.program).filter(Boolean)).size;
+      const totalDisciplines = new Set(data.map(item => item.discipline).filter(Boolean)).size;
 
       const qualified = data.filter(item => item.status === "Qualified").length;
       const notQualified = data.filter(item => item.status === "Not Qualified").length;
@@ -553,6 +611,7 @@
 
       document.getElementById("totalHEIs").textContent = totalHEIs.toLocaleString();
       document.getElementById("totalPrograms").textContent = totalPrograms.toLocaleString();
+      document.getElementById("totalDisciplines").textContent = totalDisciplines.toLocaleString();
       document.getElementById("averageScore").textContent = averageScore;
 
       document.getElementById("rateText").textContent = `${qualificationRate}% qualified rate`;
@@ -566,7 +625,7 @@
       const tbody = document.getElementById("recordsTable");
       tbody.innerHTML = "";
 
-      const latest = [...data].slice(-100).reverse();
+      const latest = [...data].slice(-150).reverse();
 
       latest.forEach(item => {
         const badgeClass = getBadgeClass(item.status);
@@ -574,6 +633,7 @@
         tbody.innerHTML += `
           <tr>
             <td>${escapeHtml(item.hei || "")}</td>
+            <td>${escapeHtml(item.discipline || "")}</td>
             <td>${escapeHtml(item.program || "")}</td>
             <td>${escapeHtml(item.passingScore || "")}</td>
             <td class="score-cell">${escapeHtml(item.score || "")}</td>
@@ -581,6 +641,7 @@
             <td>${escapeHtml(item.evaluator || "")}</td>
             <td>${escapeHtml(item.dateOfEvaluation || "")}</td>
             <td>${escapeHtml(item.remarks || "")}</td>
+            <td>${escapeHtml(item.remarksOfResult || "")}</td>
             <td>${item.applicationLink ? `<a class="link-btn" href="${escapeAttribute(item.applicationLink)}" target="_blank">Open</a>` : ""}</td>
           </tr>
         `;
@@ -594,23 +655,19 @@
     }
 
     function renderCharts(data, qualificationRate) {
+      const byDiscipline = countBy(data, "discipline");
       const byHEI = countBy(data, "hei");
       const byStatus = countBy(data, "status");
       const byProgram = countBy(data, "program");
       const byEvaluator = countBy(data, "evaluator");
+      const byRemarksOfResult = countBy(data, "remarksOfResult");
       const scoreRanges = buildScoreRanges(data);
 
-      const topHEIs = Object.entries(byHEI)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 8);
-
-      const topPrograms = Object.entries(byProgram)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 8);
-
-      const evaluators = Object.entries(byEvaluator)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 8);
+      const topDisciplines = Object.entries(byDiscipline).sort((a, b) => b[1] - a[1]).slice(0, 10);
+      const topHEIs = Object.entries(byHEI).sort((a, b) => b[1] - a[1]).slice(0, 8);
+      const topPrograms = Object.entries(byProgram).sort((a, b) => b[1] - a[1]).slice(0, 8);
+      const evaluators = Object.entries(byEvaluator).sort((a, b) => b[1] - a[1]).slice(0, 8);
+      const remarksResults = Object.entries(byRemarksOfResult).sort((a, b) => b[1] - a[1]).slice(0, 8);
 
       const scoreTrend = data
         .filter(item => Number(item.score || 0) > 0)
@@ -647,6 +704,19 @@
         options: chartOptions()
       });
 
+      disciplineChart = new Chart(document.getElementById("disciplineChart"), {
+        type: "bar",
+        data: {
+          labels: topDisciplines.map(item => item[0]),
+          datasets: [{
+            label: "Applications",
+            data: topDisciplines.map(item => item[1]),
+            backgroundColor: "#18c6ff"
+          }]
+        },
+        options: chartOptions("y")
+      });
+
       heiChart = new Chart(document.getElementById("heiChart"), {
         type: "bar",
         data: {
@@ -654,7 +724,7 @@
           datasets: [{
             label: "Applications",
             data: topHEIs.map(item => item[1]),
-            backgroundColor: "#18c6ff"
+            backgroundColor: "#a78bfa"
           }]
         },
         options: chartOptions("y")
@@ -667,7 +737,7 @@
           datasets: [{
             label: "Applications",
             data: topPrograms.map(item => item[1]),
-            backgroundColor: "#a78bfa"
+            backgroundColor: "#f5c84c"
           }]
         },
         options: chartOptions("y")
@@ -680,6 +750,18 @@
           datasets: [{
             data: Object.values(byStatus),
             backgroundColor: ["#4ade80", "#ff5b5b", "#f5c84c", "#18c6ff"]
+          }]
+        },
+        options: doughnutOptions()
+      });
+
+      remarksResultChart = new Chart(document.getElementById("remarksResultChart"), {
+        type: "doughnut",
+        data: {
+          labels: remarksResults.map(item => item[0]),
+          datasets: [{
+            data: remarksResults.map(item => item[1]),
+            backgroundColor: ["#18c6ff", "#4ade80", "#f5c84c", "#ff5b5b", "#a78bfa", "#38bdf8"]
           }]
         },
         options: doughnutOptions()
@@ -735,16 +817,16 @@
       if (scoreTrendChart) scoreTrendChart.destroy();
       if (programChart) programChart.destroy();
       if (evaluatorChart) evaluatorChart.destroy();
+      if (disciplineChart) disciplineChart.destroy();
+      if (remarksResultChart) remarksResultChart.destroy();
     }
 
     function countBy(data, field) {
       const result = {};
-
       data.forEach(item => {
         const key = item[field] || "Unspecified";
         result[key] = (result[key] || 0) + 1;
       });
-
       return result;
     }
 
@@ -773,9 +855,10 @@
     }
 
     function renderInsight(data, qualified, notQualified, pending, qualificationRate, averageScore) {
+      const topDiscipline = getTopValue(countBy(data, "discipline"));
       const topHEI = getTopValue(countBy(data, "hei"));
       const topProgram = getTopValue(countBy(data, "program"));
-      const topEvaluator = getTopValue(countBy(data, "evaluator"));
+      const topRemarksResult = getTopValue(countBy(data, "remarksOfResult"));
 
       document.getElementById("insightBox").innerHTML = `
         The dashboard currently shows <b>${data.length.toLocaleString()}</b> application records.
@@ -785,9 +868,10 @@
         <b>${pending.toLocaleString()}</b> are pending or without score.
         <br><br>
         The current qualification rate is <b>${qualificationRate}%</b>, with an average score of <b>${averageScore}</b>.
+        ${topDiscipline ? `<br><br>The discipline with the highest number of entries is <b>${escapeHtml(topDiscipline)}</b>.` : ""}
         ${topHEI ? `<br><br>The HEI with the highest number of entries is <b>${escapeHtml(topHEI)}</b>.` : ""}
         ${topProgram ? `<br><br>The most common program entry is <b>${escapeHtml(topProgram)}</b>.` : ""}
-        ${topEvaluator ? `<br><br>The most active evaluator is <b>${escapeHtml(topEvaluator)}</b>.` : ""}
+        ${topRemarksResult ? `<br><br>The most common remarks of result is <b>${escapeHtml(topRemarksResult)}</b>.` : ""}
       `;
     }
 
@@ -881,7 +965,6 @@
     }
 
     loadData();
-
     setInterval(loadData, 30000);
   </script>
 </body>
