@@ -397,11 +397,6 @@
         </div>
       </div>
 
-      <div class="panel">
-        <h2>Evaluation Score Trend</h2>
-        <canvas id="scoreTrendChart"></canvas>
-      </div>
-
       <div class="charts-two">
         <div class="panel">
           <h2>Applications by Discipline / Program Group</h2>
@@ -504,14 +499,6 @@
   </div>
 
   <script>
-    /*
-      MERGED APPS SCRIPT DATABASE LINKS
-
-      You can add more Apps Script Web App URLs here.
-      Just copy and paste another object:
-      { name: "New Discipline Name", url: "YOUR_NEW_APPS_SCRIPT_URL" }
-    */
-
     const API_SOURCES = [
       {
         name: "Agriculture",
@@ -530,7 +517,6 @@
     let statusChart;
     let rateChart;
     let scoreRangeChart;
-    let scoreTrendChart;
     let programChart;
     let evaluatorChart;
     let disciplineChart;
@@ -878,37 +864,7 @@
       const evaluators = topEntries(byEvaluator, 8);
       const remarksResults = topEntries(byRemarksOfResult, 8);
 
-      const scoreTrend = data
-        .filter(item => Number(item.score || 0) > 0)
-        .map((item, index) => ({
-          label: item.dateOfEvaluation || `Record ${index + 1}`,
-          score: Number(item.score || 0)
-        }))
-        .slice(-20);
-
       destroyCharts();
-
-      scoreTrendChart = makeChart("scoreTrendChart", "line",
-        scoreTrend.map(item => item.label),
-        [
-          {
-            label: "Evaluation Score",
-            data: scoreTrend.map(item => item.score),
-            borderColor: "#18c6ff",
-            backgroundColor: "rgba(24,198,255,0.12)",
-            tension: 0.35,
-            fill: true
-          },
-          {
-            label: "Passing Score",
-            data: scoreTrend.map(() => 60),
-            borderColor: "#f5c84c",
-            borderDash: [6, 6],
-            tension: 0
-          }
-        ],
-        chartOptions()
-      );
 
       disciplineChart = makeChart("disciplineChart", "bar",
         topDisciplines.map(item => item[0]),
@@ -968,7 +924,7 @@
     }
 
     function destroyCharts() {
-      [heiChart, statusChart, rateChart, scoreRangeChart, scoreTrendChart, programChart, evaluatorChart, disciplineChart, remarksResultChart]
+      [heiChart, statusChart, rateChart, scoreRangeChart, programChart, evaluatorChart, disciplineChart, remarksResultChart]
         .forEach(chart => {
           if (chart) chart.destroy();
         });
