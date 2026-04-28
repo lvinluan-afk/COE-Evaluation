@@ -43,19 +43,24 @@
       box-sizing: border-box;
     }
 
+    html,
     body {
       margin: 0;
+      width: 100%;
+      min-height: 100%;
+      overflow-x: hidden;
       font-family: Arial, Helvetica, sans-serif;
       background: var(--bg);
       color: var(--text);
     }
 
     .dashboard {
-      padding: 14px;
-      display: grid;
-      grid-template-columns: 1.1fr 2.8fr 1fr;
-      gap: 12px;
+      width: 100%;
       min-height: 100vh;
+      padding: 12px;
+      display: grid;
+      grid-template-columns: 0.9fr 2.4fr 0.9fr;
+      gap: 12px;
     }
 
     .left,
@@ -64,18 +69,20 @@
       display: grid;
       gap: 12px;
       align-content: start;
+      min-width: 0;
     }
 
     .panel {
       background: var(--card);
       border-radius: 12px;
-      padding: 15px;
+      padding: 14px;
       border: 1px solid var(--border);
       box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+      min-width: 0;
     }
 
     .kpi {
-      min-height: 115px;
+      min-height: 105px;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -90,13 +97,13 @@
     }
 
     .kpi-value {
-      font-size: 42px;
+      font-size: clamp(28px, 3.4vw, 42px);
       font-weight: 800;
       line-height: 1;
     }
 
     .kpi-label {
-      font-size: 14px;
+      font-size: 13px;
       color: var(--muted);
       margin-top: 8px;
     }
@@ -107,8 +114,9 @@
     .cyan { color: var(--cyan); }
 
     h1 {
-      font-size: 22px;
+      font-size: clamp(18px, 2.2vw, 22px);
       margin: 0;
+      line-height: 1.25;
     }
 
     h2 {
@@ -149,21 +157,22 @@
     }
 
     .filters {
-      display: flex;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(140px, 1fr));
       gap: 8px;
-      flex-wrap: wrap;
       margin-top: 12px;
     }
 
     input,
     select {
+      width: 100%;
       background: var(--card2);
       color: var(--text);
       border: 1px solid var(--border);
       padding: 10px 11px;
       border-radius: 8px;
       outline: none;
-      min-width: 150px;
+      min-width: 0;
     }
 
     button {
@@ -174,6 +183,7 @@
       border-radius: 8px;
       font-weight: 800;
       cursor: pointer;
+      white-space: nowrap;
     }
 
     button.secondary {
@@ -188,25 +198,27 @@
 
     .charts-two {
       display: grid;
-      grid-template-columns: 1.45fr 1fr;
+      grid-template-columns: 1fr 1fr;
       gap: 12px;
     }
 
     .table-wrap {
+      width: 100%;
       max-height: 430px;
       overflow: auto;
+      border-radius: 8px;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
       font-size: 12px;
-      min-width: 1200px;
+      min-width: 1000px;
     }
 
     th,
     td {
-      padding: 9px 8px;
+      padding: 8px 7px;
       border-bottom: 1px solid var(--border);
       text-align: center;
       vertical-align: middle;
@@ -255,7 +267,7 @@
     }
 
     .mini-number {
-      font-size: 32px;
+      font-size: clamp(24px, 3vw, 32px);
       font-weight: 800;
       line-height: 1;
     }
@@ -264,7 +276,7 @@
       font-size: 13px;
       color: var(--muted);
       margin-top: 5px;
-      margin-bottom: 18px;
+      margin-bottom: 16px;
     }
 
     .insight-box {
@@ -277,7 +289,10 @@
     }
 
     canvas {
-      max-height: 290px;
+      width: 100% !important;
+      max-width: 100%;
+      height: 260px !important;
+      max-height: 260px;
     }
 
     .score-cell {
@@ -303,8 +318,36 @@
       font-size: 11px;
     }
 
-    @media (max-width: 1200px) {
+    @media (max-width: 1280px) {
       .dashboard {
+        grid-template-columns: 1fr 2fr;
+      }
+
+      .right {
+        grid-column: 1 / -1;
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .right .panel:last-child {
+        grid-column: 1 / -1;
+      }
+
+      .filters {
+        grid-template-columns: repeat(3, minmax(130px, 1fr));
+      }
+    }
+
+    @media (max-width: 900px) {
+      .dashboard {
+        grid-template-columns: 1fr;
+        padding: 10px;
+      }
+
+      .left {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .right {
         grid-template-columns: 1fr;
       }
 
@@ -312,8 +355,90 @@
         grid-template-columns: 1fr;
       }
 
-      .kpi-value {
-        font-size: 36px;
+      .filters {
+        grid-template-columns: repeat(2, minmax(130px, 1fr));
+      }
+
+      .topbar {
+        align-items: flex-start;
+      }
+
+      .top-actions {
+        width: 100%;
+      }
+
+      .clock-box,
+      .top-actions button {
+        flex: 1;
+      }
+
+      canvas {
+        height: 240px !important;
+        max-height: 240px;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .dashboard {
+        padding: 8px;
+        gap: 10px;
+      }
+
+      .panel {
+        padding: 12px;
+        border-radius: 10px;
+      }
+
+      .left {
+        grid-template-columns: 1fr;
+      }
+
+      .kpi {
+        min-height: 88px;
+      }
+
+      .filters {
+        grid-template-columns: 1fr;
+      }
+
+      .top-actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .clock-box,
+      button {
+        width: 100%;
+        min-width: 0;
+      }
+
+      .table-wrap {
+        max-height: 420px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      table {
+        min-width: 950px;
+        font-size: 11px;
+      }
+
+      th,
+      td {
+        padding: 7px 6px;
+      }
+
+      canvas {
+        height: 220px !important;
+        max-height: 220px;
+      }
+
+      h1 {
+        font-size: 18px;
+      }
+
+      h2 {
+        font-size: 14px;
       }
     }
   </style>
@@ -761,8 +886,15 @@
     }
 
     function clearFilters() {
-      ["sourceFilter", "disciplineFilter", "heiFilter", "programFilter", "statusFilter", "remarksResultFilter", "evaluatorFilter"]
-        .forEach(id => document.getElementById(id).value = "");
+      [
+        "sourceFilter",
+        "disciplineFilter",
+        "heiFilter",
+        "programFilter",
+        "statusFilter",
+        "remarksResultFilter",
+        "evaluatorFilter"
+      ].forEach(id => document.getElementById(id).value = "");
 
       document.getElementById("searchInput").value = "";
       applyFilters();
@@ -924,10 +1056,18 @@
     }
 
     function destroyCharts() {
-      [heiChart, statusChart, rateChart, scoreRangeChart, programChart, evaluatorChart, disciplineChart, remarksResultChart]
-        .forEach(chart => {
-          if (chart) chart.destroy();
-        });
+      [
+        heiChart,
+        statusChart,
+        rateChart,
+        scoreRangeChart,
+        programChart,
+        evaluatorChart,
+        disciplineChart,
+        remarksResultChart
+      ].forEach(chart => {
+        if (chart) chart.destroy();
+      });
     }
 
     function countBy(data, field) {
@@ -1010,11 +1150,42 @@
           }
         },
         scales: indexAxis === "x" ? {
-          x: { ticks: { color: textColor, maxRotation: 35 }, grid: { color: gridColor } },
-          y: { ticks: { color: textColor }, grid: { color: gridColor }, beginAtZero: true }
+          x: {
+            ticks: {
+              color: textColor,
+              maxRotation: 35
+            },
+            grid: {
+              color: gridColor
+            }
+          },
+          y: {
+            ticks: {
+              color: textColor
+            },
+            grid: {
+              color: gridColor
+            },
+            beginAtZero: true
+          }
         } : {
-          x: { ticks: { color: textColor }, grid: { color: gridColor }, beginAtZero: true },
-          y: { ticks: { color: textColor }, grid: { color: gridColor } }
+          x: {
+            ticks: {
+              color: textColor
+            },
+            grid: {
+              color: gridColor
+            },
+            beginAtZero: true
+          },
+          y: {
+            ticks: {
+              color: textColor
+            },
+            grid: {
+              color: gridColor
+            }
+          }
         }
       };
     }
