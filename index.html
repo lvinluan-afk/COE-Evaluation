@@ -44,12 +44,12 @@
 
     .top-header {
       display: grid;
-      grid-template-columns: 220px 1fr 290px;
+      grid-template-columns: 220px 1fr 300px;
       gap: 10px;
       margin-bottom: 10px;
+      align-items: stretch;
     }
 
-    .panel,
     .logo-panel,
     .title-panel,
     .live-panel,
@@ -85,6 +85,7 @@
     .title-panel h1 {
       margin: 0;
       font-size: 32px;
+      line-height: 1.05;
       font-weight: 900;
       letter-spacing: 0.3px;
     }
@@ -110,6 +111,7 @@
       justify-content: flex-end;
       gap: 8px;
       font-weight: 800;
+      color: #ffffff;
     }
 
     .dot {
@@ -129,8 +131,9 @@
 
     .error-text {
       color: #ffb4b4;
-      font-size: 13px;
-      line-height: 1.4;
+      font-size: 12px;
+      line-height: 1.35;
+      word-break: break-word;
     }
 
     .grid-main {
@@ -150,6 +153,7 @@
       font-weight: 800;
       text-transform: uppercase;
       margin-bottom: 8px;
+      color: #ffffff;
     }
 
     .product-card {
@@ -734,8 +738,7 @@
       kpi: {},
       records: [],
       resultTable: [],
-      programTable: [],
-      evaluatorTable: []
+      programTable: []
     };
 
     let activeScript = null;
@@ -745,13 +748,8 @@
       document.getElementById('errorText').textContent = '';
       document.getElementById('updatedText').textContent = 'Connecting to Google Sheet...';
 
-      if (activeScript) {
-        activeScript.remove();
-      }
-
-      if (connectionTimer) {
-        clearTimeout(connectionTimer);
-      }
+      if (activeScript) activeScript.remove();
+      if (connectionTimer) clearTimeout(connectionTimer);
 
       const callbackName = 'coeDashboardCallback_' + Date.now();
 
@@ -794,9 +792,9 @@
     function showConnectionError() {
       document.getElementById('updatedText').textContent = 'Connection failed.';
       document.getElementById('errorText').innerHTML =
-        'Please test this link:<br>' +
+        'Test this in your browser:<br>' +
         GAS_WEB_APP_URL + '?mode=data&callback=test<br><br>' +
-        'It must show: test({...})';
+        'Expected result must start with: test({"success":true,...})';
 
       if (activeScript) {
         activeScript.remove();
@@ -807,12 +805,11 @@
     function normalizeData(data) {
       if (!data || data.success === false) {
         return {
+          updatedAt: 'No data received',
           kpi: {},
           records: [],
           resultTable: [],
-          programTable: [],
-          evaluatorTable: [],
-          updatedAt: 'No data received'
+          programTable: []
         };
       }
 
@@ -823,13 +820,12 @@
         kpi: data.kpi || {},
         records: records,
         resultTable: data.resultTable || buildResultTable(records),
-        programTable: data.programTable || buildProgramTable(records),
-        evaluatorTable: data.evaluatorTable || []
+        programTable: data.programTable || buildProgramTable(records)
       };
     }
 
     function renderDashboard() {
-      const kpi = dashboardData.kpi;
+      const kpi = dashboardData.kpi || {};
       const records = dashboardData.records || [];
 
       const total = Number(kpi.totalApplications || records.length || 0);
