@@ -44,15 +44,22 @@
 
     .top-header {
       display: grid;
-      grid-template-columns: 220px 1fr 270px;
+      grid-template-columns: 220px 1fr 290px;
       gap: 10px;
       margin-bottom: 10px;
-      align-items: stretch;
+    }
+
+    .panel,
+    .logo-panel,
+    .title-panel,
+    .live-panel,
+    .card,
+    .database-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
     }
 
     .logo-panel {
-      background: var(--panel);
-      border: 1px solid var(--line);
       min-height: 112px;
       display: flex;
       align-items: center;
@@ -69,8 +76,6 @@
     }
 
     .title-panel {
-      background: var(--panel);
-      border: 1px solid var(--line);
       padding: 18px 22px;
       display: flex;
       flex-direction: column;
@@ -80,20 +85,17 @@
     .title-panel h1 {
       margin: 0;
       font-size: 32px;
-      line-height: 1.05;
       font-weight: 900;
       letter-spacing: 0.3px;
     }
 
-    .title-panel .subtitle {
+    .subtitle {
       margin-top: 8px;
       font-size: 15px;
       color: var(--muted);
     }
 
     .live-panel {
-      background: var(--panel);
-      border: 1px solid var(--line);
       padding: 18px;
       display: flex;
       flex-direction: column;
@@ -108,7 +110,6 @@
       justify-content: flex-end;
       gap: 8px;
       font-weight: 800;
-      color: #ffffff;
     }
 
     .dot {
@@ -126,6 +127,12 @@
       line-height: 1.4;
     }
 
+    .error-text {
+      color: #ffb4b4;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
     .grid-main {
       display: grid;
       grid-template-columns: 1.3fr 1fr 1.35fr 1.1fr;
@@ -133,8 +140,6 @@
     }
 
     .card {
-      background: var(--panel);
-      border: 1px solid var(--line);
       padding: 12px;
       min-height: 115px;
       overflow: hidden;
@@ -145,7 +150,6 @@
       font-weight: 800;
       text-transform: uppercase;
       margin-bottom: 8px;
-      color: #ffffff;
     }
 
     .product-card {
@@ -177,7 +181,8 @@
       margin-top: 5px;
     }
 
-    .response-card {
+    .response-card,
+    .satisfaction-card {
       display: grid;
       grid-template-columns: 1fr 100px;
       gap: 10px;
@@ -215,13 +220,6 @@
       border-right: 17px solid transparent;
       border-top: 30px solid var(--red);
       margin-bottom: 8px;
-    }
-
-    .satisfaction-card {
-      display: grid;
-      grid-template-columns: 1fr 100px;
-      gap: 10px;
-      align-items: center;
     }
 
     .score-box {
@@ -307,7 +305,6 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      position: relative;
     }
 
     .donut {
@@ -404,8 +401,6 @@
 
     .database-card {
       margin-top: 10px;
-      background: var(--panel);
-      border: 1px solid var(--line);
       padding: 0;
       overflow: hidden;
     }
@@ -568,6 +563,7 @@
       <div class="live-panel">
         <div class="live-badge"><span class="dot"></span> LIVE &nbsp; Real-time Data</div>
         <div class="updated" id="updatedText">Loading Google Sheet data...</div>
+        <div class="error-text" id="errorText"></div>
       </div>
     </div>
 
@@ -742,25 +738,70 @@
       evaluatorTable: []
     };
 
+    let activeScript = null;
+    let connectionTimer = null;
+
     function loadDashboard() {
+      document.getElementById('errorText').textContent = '';
+      document.getElementById('updatedText').textContent = 'Connecting to Google Sheet...';
+
+      if (activeScript) {
+        activeScript.remove();
+      }
+
+      if (connectionTimer) {
+        clearTimeout(connectionTimer);
+      }
+
       const callbackName = 'coeDashboardCallback_' + Date.now();
 
       window[callbackName] = function(data) {
         dashboardData = normalizeData(data);
         renderDashboard();
+
+        document.getElementById('errorText').textContent = '';
+
         delete window[callbackName];
-        script.remove();
+
+        if (activeScript) {
+          activeScript.remove();
+          activeScript = null;
+        }
+
+        if (connectionTimer) {
+          clearTimeout(connectionTimer);
+          connectionTimer = null;
+        }
       };
 
-      const script = document.createElement('script');
-      script.src = GAS_WEB_APP_URL + '?mode=data&callback=' + callbackName + '&t=' + Date.now();
+      activeScript = document.createElement('script');
+      activeScript.src = GAS_WEB_APP_URL + '?mode=data&callback=' + callbackName + '&t=' + Date.now();
 
-      script.onerror = function() {
-        document.getElementById('updatedText').textContent =
-          'Connection failed. Please check Apps Script deployment access.';
+      activeScript.onerror = function() {
+        showConnectionError();
       };
 
-      document.body.appendChild(script);
+      document.body.appendChild(activeScript);
+
+      connectionTimer = setTimeout(function() {
+        if (typeof window[callbackName] === 'function') {
+          showConnectionError();
+          delete window[callbackName];
+        }
+      }, 12000);
+    }
+
+    function showConnectionError() {
+      document.getElementById('updatedText').textContent = 'Connection failed.';
+      document.getElementById('errorText').innerHTML =
+        'Please test this link:<br>' +
+        GAS_WEB_APP_URL + '?mode=data&callback=test<br><br>' +
+        'It must show: test({...})';
+
+      if (activeScript) {
+        activeScript.remove();
+        activeScript = null;
+      }
     }
 
     function normalizeData(data) {
@@ -899,10 +940,11 @@
     function drawResultSummaryChart() {
       const table = dashboardData.resultTable || [];
       const rows = table.slice(1);
-      const labels = rows.map(row => row[0]);
-      const values = rows.map(row => Number(row[1]) || 0);
-
-      drawDonut('resultSummaryChart', labels, values);
+      drawDonut(
+        'resultSummaryChart',
+        rows.map(row => row[0]),
+        rows.map(row => Number(row[1]) || 0)
+      );
     }
 
     function drawBreakdownChart() {
@@ -921,7 +963,11 @@
     function drawProgramChart() {
       const table = dashboardData.programTable || buildProgramTable(dashboardData.records);
       const rows = table.slice(1).slice(0, 6);
-      drawLineChart('programChart', rows.map(row => shortText(row[0], 9)), rows.map(row => Number(row[1]) || 0));
+      drawLineChart(
+        'programChart',
+        rows.map(row => shortText(row[0], 9)),
+        rows.map(row => Number(row[1]) || 0)
+      );
     }
 
     function drawAreaChart() {
@@ -1015,6 +1061,7 @@
       ctx.strokeRect(barX, barY, barW, barH);
 
       let legendY = 45;
+
       segments.forEach(segment => {
         ctx.fillStyle = segment.color;
         ctx.fillRect(width - 140, legendY - 10, 12, 12);
@@ -1099,10 +1146,12 @@
       gradient.addColorStop(1, 'rgba(40,189,245,0.18)');
 
       ctx.beginPath();
+
       points.forEach((point, index) => {
         if (index === 0) ctx.moveTo(point.x, point.y);
         else ctx.lineTo(point.x, point.y);
       });
+
       ctx.lineTo(points[points.length - 1].x, height - pad);
       ctx.lineTo(points[0].x, height - pad);
       ctx.closePath();
@@ -1259,7 +1308,9 @@
     setInterval(loadDashboard, 10000);
 
     window.addEventListener('resize', function() {
-      renderDashboard();
+      if (dashboardData.records) {
+        renderDashboard();
+      }
     });
   </script>
 </body>
