@@ -1,1236 +1,1295 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="night">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>Live COE Evaluation Dashboard</title>
-
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <title>COE Evaluation Dashboard</title>
 
   <style>
     :root {
-      --bg: #171936;
-      --card: #25284f;
-      --card2: #2e315f;
-      --text: #f7f8ff;
-      --muted: #aeb4d8;
-      --cyan: #18c6ff;
-      --gold: #f5c84c;
-      --red: #ff5b5b;
-      --green: #4ade80;
-      --purple: #a78bfa;
-      --border: rgba(255,255,255,0.09);
-      --table-hover: rgba(255,255,255,0.06);
-    }
-
-    html[data-theme="day"] {
-      --bg: #eef3fb;
-      --card: #ffffff;
-      --card2: #f2f5fb;
-      --text: #172033;
-      --muted: #5f6b85;
-      --cyan: #0077b6;
-      --gold: #b7791f;
-      --red: #d62828;
-      --green: #218838;
-      --purple: #6d28d9;
-      --border: rgba(0,0,0,0.09);
-      --table-hover: rgba(0,0,0,0.04);
+      --bg: #061323;
+      --bg2: #081a31;
+      --panel: #0d213b;
+      --panel2: #102845;
+      --line: rgba(148, 163, 184, 0.22);
+      --text: #f8fafc;
+      --muted: #a8b3c7;
+      --blue: #3b82f6;
+      --cyan: #38bdf8;
+      --green: #5ee35e;
+      --yellow: #facc15;
+      --orange: #fb923c;
+      --red: #fb4d5c;
+      --purple: #a855f7;
+      --cardShadow: 0 18px 45px rgba(0, 0, 0, 0.28);
     }
 
     * {
       box-sizing: border-box;
     }
 
-    html,
     body {
       margin: 0;
-      width: 100%;
-      min-height: 100%;
-      overflow-x: hidden;
       font-family: Arial, Helvetica, sans-serif;
-      background: var(--bg);
+      background:
+        radial-gradient(circle at top left, rgba(59, 130, 246, 0.28), transparent 28%),
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.18), transparent 24%),
+        linear-gradient(135deg, #050b16, #061323 50%, #020617);
       color: var(--text);
-    }
-
-    .dashboard {
-      width: 100%;
       min-height: 100vh;
-      padding: 12px;
+    }
+
+    .app {
       display: grid;
-      grid-template-columns: 0.9fr 2.4fr 0.9fr;
-      gap: 12px;
+      grid-template-columns: 230px 1fr;
+      min-height: 100vh;
     }
 
-    .left,
-    .center,
-    .right {
+    aside {
+      background: linear-gradient(180deg, #08182d, #05101f);
+      border-right: 1px solid var(--line);
+      padding: 18px 14px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+
+    .logo-area {
+      text-align: center;
+      padding: 10px 4px 24px;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 18px;
+    }
+
+    .logo-circle {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      margin: 0 auto 10px;
+      background: linear-gradient(135deg, #12345A, #315C83);
+      border: 2px solid rgba(255,255,255,0.18);
       display: grid;
-      gap: 12px;
-      align-content: start;
-      min-width: 0;
+      place-items: center;
+      font-size: 34px;
+      box-shadow: 0 0 25px rgba(59,130,246,0.28);
     }
 
-    .panel {
-      background: var(--card);
-      border-radius: 12px;
-      padding: 14px;
-      border: 1px solid var(--border);
-      box-shadow: 0 10px 25px rgba(0,0,0,0.12);
-      min-width: 0;
-    }
-
-    .kpi {
-      min-height: 105px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      cursor: pointer;
-      transition: 0.2s ease;
-    }
-
-    .kpi:hover,
-    tr.clickable-row:hover {
-      transform: translateY(-1px);
-      background: var(--table-hover);
-    }
-
-    .kpi-value {
-      font-size: clamp(28px, 3.4vw, 42px);
+    .logo-title {
       font-weight: 800;
-      line-height: 1;
+      font-size: 14px;
+      letter-spacing: 0.5px;
     }
 
-    .kpi-label {
-      font-size: 13px;
+    .logo-subtitle {
+      font-size: 11px;
       color: var(--muted);
-      margin-top: 8px;
+      margin-top: 4px;
     }
 
-    .positive { color: var(--green); }
-    .negative { color: var(--red); }
-    .warning { color: var(--gold); }
-    .cyan { color: var(--cyan); }
-
-    h1 {
-      font-size: clamp(18px, 2.2vw, 22px);
-      margin: 0;
-      line-height: 1.25;
+    .nav {
+      display: grid;
+      gap: 8px;
     }
 
-    h2 {
-      font-size: 15px;
-      margin: 0 0 12px;
+    .nav-item {
+      padding: 12px 14px;
+      border-radius: 10px;
+      color: #dbeafe;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
     }
 
-    .subtext {
+    .nav-item.active {
+      background: linear-gradient(135deg, #1d4ed8, #1e40af);
+      box-shadow: 0 8px 20px rgba(37, 99, 235, 0.25);
+    }
+
+    .side-footer {
+      position: absolute;
+      bottom: 18px;
+      left: 14px;
+      right: 14px;
       color: var(--muted);
       font-size: 12px;
-      margin-top: 5px;
+      line-height: 1.7;
+    }
+
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--green);
+      border-radius: 50%;
+      display: inline-block;
+      box-shadow: 0 0 12px var(--green);
+      margin-right: 6px;
+    }
+
+    main {
+      padding: 20px 24px 24px;
+      overflow-x: hidden;
     }
 
     .topbar {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 31px;
+      letter-spacing: -0.6px;
+      text-transform: uppercase;
+    }
+
+    .subtitle {
+      margin-top: 6px;
+      color: #cbd5e1;
+      font-size: 14px;
     }
 
     .top-actions {
       display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
       align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
     }
 
-    .clock-box {
-      background: var(--card2);
-      border: 1px solid var(--border);
-      padding: 9px 12px;
-      border-radius: 8px;
-      font-size: 13px;
-      color: var(--text);
-      min-width: 210px;
-      text-align: center;
-    }
-
-    .filters {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(140px, 1fr));
-      gap: 8px;
-      margin-top: 12px;
-    }
-
-    input,
-    select {
-      width: 100%;
-      background: var(--card2);
-      color: var(--text);
-      border: 1px solid var(--border);
-      padding: 10px 11px;
-      border-radius: 8px;
-      outline: none;
-      min-width: 0;
-    }
-
-    button {
-      background: var(--cyan);
-      color: white;
-      border: none;
-      padding: 10px 14px;
-      border-radius: 8px;
+    .live-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid var(--line);
+      background: rgba(13, 33, 59, 0.86);
+      border-radius: 12px;
+      padding: 12px 16px;
       font-weight: 800;
-      cursor: pointer;
+      box-shadow: var(--cardShadow);
+    }
+
+    .updated {
+      color: #e2e8f0;
+      font-size: 13px;
       white-space: nowrap;
     }
 
-    button.secondary {
-      background: var(--card2);
+    button {
+      border: 1px solid var(--line);
+      background: rgba(13, 33, 59, 0.95);
       color: var(--text);
-      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 13px;
+      cursor: pointer;
+      font-weight: 700;
     }
 
     button:hover {
-      opacity: 0.9;
+      border-color: var(--cyan);
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.18);
     }
 
-    .charts-two {
+    .kpis {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
+      grid-template-columns: repeat(5, minmax(160px, 1fr));
+      gap: 14px;
+      margin-bottom: 14px;
     }
 
-    .table-wrap {
+    .kpi {
+      background: linear-gradient(145deg, rgba(16, 40, 69, 0.98), rgba(8, 26, 49, 0.96));
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 18px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      min-height: 124px;
+      box-shadow: var(--cardShadow);
+    }
+
+    .kpi-icon {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 28px;
+      flex: 0 0 auto;
+      color: white;
+      box-shadow: inset 0 -8px 18px rgba(0,0,0,0.22);
+    }
+
+    .icon-blue { background: linear-gradient(135deg, #60a5fa, #2563eb); }
+    .icon-green { background: linear-gradient(135deg, #86efac, #22c55e); }
+    .icon-yellow { background: linear-gradient(135deg, #fde047, #f59e0b); }
+    .icon-red { background: linear-gradient(135deg, #fb7185, #ef4444); }
+    .icon-purple { background: linear-gradient(135deg, #c084fc, #7c3aed); }
+
+    .kpi-label {
+      color: #d8e1ef;
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .2px;
+    }
+
+    .kpi-value {
+      font-size: 32px;
+      line-height: 1.05;
+      font-weight: 900;
+      margin-top: 6px;
+    }
+
+    .kpi-sub {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 5px;
+    }
+
+    .green { color: var(--green); }
+    .yellow { color: var(--yellow); }
+    .red { color: var(--red); }
+    .purple { color: var(--purple); }
+    .blue { color: #60a5fa; }
+
+    .grid {
+      display: grid;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .grid.middle {
+      grid-template-columns: 1.1fr 1.1fr 0.9fr 0.9fr 0.95fr;
+    }
+
+    .grid.charts {
+      grid-template-columns: 1.1fr 1fr 1.55fr;
+    }
+
+    .panel {
+      background: linear-gradient(145deg, rgba(16, 40, 69, 0.98), rgba(8, 26, 49, 0.96));
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: var(--cardShadow);
+      padding: 16px;
+      overflow: hidden;
+    }
+
+    .panel-title {
+      font-size: 13px;
+      font-weight: 900;
+      text-transform: uppercase;
+      color: #e2e8f0;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .mini-value {
+      font-size: 28px;
+      font-weight: 900;
+      margin: 5px 0;
+    }
+
+    .mini-label {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .compare-box {
+      margin-top: 14px;
+      border: 1px solid rgba(251, 77, 92, .65);
+      border-radius: 10px;
+      padding: 15px;
+      text-align: center;
+      background: rgba(251,77,92,.08);
+      color: #ffe3e6;
+    }
+
+    .down-triangle {
+      width: 0;
+      height: 0;
+      border-left: 14px solid transparent;
+      border-right: 14px solid transparent;
+      border-top: 24px solid var(--red);
+      margin: 0 auto 10px;
+      filter: drop-shadow(0 0 10px rgba(251,77,92,.45));
+    }
+
+    .gauge {
+      width: 155px;
+      height: 155px;
+      margin: 0 auto;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle closest-side, #102845 68%, transparent 70% 100%),
+        conic-gradient(var(--blue) calc(var(--p) * 1%), rgba(226,232,240,.8) 0);
+      position: relative;
+    }
+
+    .gauge::after {
+      content: "";
+      width: 116px;
+      height: 116px;
+      border-radius: 50%;
+      border: 13px solid rgba(15, 23, 42, 0.72);
+      position: absolute;
+    }
+
+    .gauge-value {
+      position: relative;
+      z-index: 2;
+      font-size: 28px;
+      font-weight: 900;
+    }
+
+    .meter {
+      width: 160px;
+      height: 85px;
+      margin: 0 auto 6px;
+      border-radius: 160px 160px 0 0;
+      background:
+        radial-gradient(circle at 50% 100%, #102845 0 39%, transparent 40%),
+        conic-gradient(from 270deg at 50% 100%, var(--cyan) 0deg, var(--cyan) calc(var(--p) * 1.8deg), rgba(226,232,240,.55) 0deg, rgba(226,232,240,.55) 180deg, transparent 180deg);
+      position: relative;
+    }
+
+    .meter::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: 0;
+      width: 3px;
+      height: 70px;
+      background: #e2e8f0;
+      transform-origin: bottom center;
+      transform: rotate(calc(-90deg + var(--p) * 1.8deg));
+      border-radius: 99px;
+    }
+
+    .meter-center {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: rgba(148,163,184,.35);
+      display: grid;
+      place-items: center;
+      margin: -32px auto 0;
+      position: relative;
+      z-index: 3;
+      font-size: 20px;
+    }
+
+    .summary-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .summary-emoji {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 23px;
+      flex: 0 0 auto;
+    }
+
+    .summary-num {
+      font-size: 23px;
+      font-weight: 900;
+    }
+
+    .summary-text {
+      color: #cbd5e1;
+      font-size: 13px;
+    }
+
+    canvas {
       width: 100%;
-      max-height: 430px;
-      overflow: auto;
-      border-radius: 8px;
+      height: 230px;
+      display: block;
+    }
+
+    .table-panel {
+      padding: 0;
+    }
+
+    .table-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      flex-wrap: wrap;
+    }
+
+    .search-wrap {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    input, select {
+      background: rgba(2, 6, 23, .35);
+      border: 1px solid var(--line);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 9px;
+      outline: none;
+    }
+
+    input::placeholder {
+      color: #93a4ba;
+    }
+
+    select option {
+      color: #0f172a;
+    }
+
+    .table-scroll {
+      overflow-x: auto;
+      max-height: 420px;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 12px;
-      min-width: 1000px;
+      min-width: 1080px;
+      font-size: 13px;
     }
 
-    th,
-    td {
-      padding: 8px 7px;
-      border-bottom: 1px solid var(--border);
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.14);
       text-align: center;
-      vertical-align: middle;
-    }
-
-    th {
-      color: var(--muted);
-      background: var(--card2);
-      position: sticky;
-      top: 0;
-      z-index: 2;
-    }
-
-    td:first-child,
-    th:first-child {
-      text-align: left;
-    }
-
-    tr.clickable-row {
-      cursor: pointer;
-      transition: 0.15s ease;
-    }
-
-    .badge {
-      display: inline-block;
-      padding: 5px 8px;
-      border-radius: 999px;
-      font-size: 11px;
-      font-weight: 800;
       white-space: nowrap;
     }
 
-    .badge-qualified {
-      background: rgba(74,222,128,0.14);
+    th {
+      color: #e2e8f0;
+      background: rgba(148,163,184,.08);
+      font-size: 12px;
+      text-transform: uppercase;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+    }
+
+    td.left {
+      text-align: left;
+      white-space: normal;
+      min-width: 220px;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 5px 9px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 12px;
+    }
+
+    .pill.pass {
+      background: rgba(94, 227, 94, .16);
       color: var(--green);
     }
 
-    .badge-not-qualified {
-      background: rgba(255,91,91,0.15);
+    .pill.delib {
+      background: rgba(250, 204, 21, .16);
+      color: var(--yellow);
+    }
+
+    .pill.fail {
+      background: rgba(251, 77, 92, .16);
       color: var(--red);
     }
 
-    .badge-pending {
-      background: rgba(245,200,76,0.16);
-      color: var(--gold);
+    .pill.pending {
+      background: rgba(168, 85, 247, .16);
+      color: #c084fc;
     }
 
-    .mini-number {
-      font-size: clamp(24px, 3vw, 32px);
-      font-weight: 800;
-      line-height: 1;
-    }
-
-    .mini-label {
-      font-size: 13px;
+    .bottom-note {
       color: var(--muted);
-      margin-top: 5px;
-      margin-bottom: 16px;
-    }
-
-    .insight-box {
-      background: var(--card2);
-      border-radius: 8px;
+      text-align: center;
+      font-size: 12px;
       padding: 12px;
-      font-size: 13px;
-      color: var(--muted);
-      line-height: 1.5;
-    }
-
-    canvas {
-      width: 100% !important;
-      max-width: 100%;
-      height: 260px !important;
-      max-height: 260px;
-    }
-
-    .score-cell {
-      font-weight: 800;
-    }
-
-    .link-btn {
-      color: var(--cyan);
-      text-decoration: none;
-      font-weight: 800;
-    }
-
-    .link-btn:hover {
-      text-decoration: underline;
-    }
-
-    .source-pill {
-      display: inline-block;
-      padding: 4px 7px;
-      border-radius: 999px;
-      background: var(--card2);
-      color: var(--muted);
-      font-size: 11px;
     }
 
     @media (max-width: 1280px) {
-      .dashboard {
-        grid-template-columns: 1fr 2fr;
+      .app {
+        grid-template-columns: 1fr;
       }
 
-      .right {
-        grid-column: 1 / -1;
-        grid-template-columns: repeat(3, 1fr);
+      aside {
+        display: none;
       }
 
-      .right .panel:last-child {
-        grid-column: 1 / -1;
+      .kpis {
+        grid-template-columns: repeat(2, minmax(160px, 1fr));
       }
 
-      .filters {
-        grid-template-columns: repeat(3, minmax(130px, 1fr));
+      .grid.middle,
+      .grid.charts {
+        grid-template-columns: 1fr;
       }
     }
 
-    @media (max-width: 900px) {
-      .dashboard {
-        grid-template-columns: 1fr;
-        padding: 10px;
-      }
-
-      .left {
-        grid-template-columns: repeat(2, 1fr);
-      }
-
-      .right {
-        grid-template-columns: 1fr;
-      }
-
-      .charts-two {
-        grid-template-columns: 1fr;
-      }
-
-      .filters {
-        grid-template-columns: repeat(2, minmax(130px, 1fr));
+    @media (max-width: 720px) {
+      main {
+        padding: 14px;
       }
 
       .topbar {
-        align-items: flex-start;
+        flex-direction: column;
       }
 
-      .top-actions {
-        width: 100%;
+      h1 {
+        font-size: 23px;
       }
 
-      .clock-box,
-      .top-actions button {
-        flex: 1;
-      }
-
-      canvas {
-        height: 240px !important;
-        max-height: 240px;
-      }
-    }
-
-    @media (max-width: 600px) {
-      .dashboard {
-        padding: 8px;
-        gap: 10px;
-      }
-
-      .panel {
-        padding: 12px;
-        border-radius: 10px;
-      }
-
-      .left {
+      .kpis {
         grid-template-columns: 1fr;
       }
 
       .kpi {
-        min-height: 88px;
+        min-height: 105px;
       }
 
-      .filters {
-        grid-template-columns: 1fr;
-      }
-
-      .top-actions {
-        flex-direction: column;
+      .table-head {
         align-items: stretch;
       }
 
-      .clock-box,
-      button {
+      input, select, button {
         width: 100%;
-        min-width: 0;
-      }
-
-      .table-wrap {
-        max-height: 420px;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-      }
-
-      table {
-        min-width: 950px;
-        font-size: 11px;
-      }
-
-      th,
-      td {
-        padding: 7px 6px;
-      }
-
-      canvas {
-        height: 220px !important;
-        max-height: 220px;
-      }
-
-      h1 {
-        font-size: 18px;
-      }
-
-      h2 {
-        font-size: 14px;
       }
     }
   </style>
 </head>
 
 <body>
-  <div class="dashboard">
-
-    <div class="left">
-      <div class="panel kpi" onclick="clearFilters()">
-        <div class="kpi-value" id="totalApplications">0</div>
-        <div class="kpi-label">Total Applications</div>
+  <div class="app">
+    <aside>
+      <div class="logo-area">
+        <div class="logo-circle">🏛️</div>
+        <div class="logo-title">COE Evaluation System</div>
+        <div class="logo-subtitle">Center of Excellence</div>
       </div>
 
-      <div class="panel kpi" onclick="filterByStatus('Qualified')">
-        <div class="kpi-value positive" id="qualified">0</div>
-        <div class="kpi-label">Qualified Applications</div>
+      <div class="nav">
+        <div class="nav-item active">📊 Dashboard</div>
+        <div class="nav-item">📄 Applications</div>
+        <div class="nav-item">🧾 Evaluation Database</div>
+        <div class="nav-item">🎓 Programs</div>
+        <div class="nav-item">🌐 Regions</div>
+        <div class="nav-item">👤 Evaluators</div>
+        <div class="nav-item">📑 Reports</div>
+        <div class="nav-item">⚙️ Settings</div>
       </div>
 
-      <div class="panel kpi" onclick="filterByStatus('Not Qualified')">
-        <div class="kpi-value negative" id="notQualified">0</div>
-        <div class="kpi-label">Not Qualified Applications</div>
+      <div class="side-footer">
+        COE Evaluation System<br>
+        v1.0.0<br>
+        <span class="live-dot"></span>LIVE
+      </div>
+    </aside>
+
+    <main>
+      <div class="topbar">
+        <div>
+          <h1>COE Evaluation Dashboard</h1>
+          <div class="subtitle">Center of Excellence Evaluation Result System</div>
+        </div>
+
+        <div class="top-actions">
+          <div class="live-badge"><span class="live-dot"></span> LIVE <span style="color:#cbd5e1;font-weight:600;">Real-time Data</span></div>
+          <div class="updated" id="updatedText">Loading...</div>
+          <button onclick="loadDashboard()">⟳ Refresh</button>
+        </div>
       </div>
 
-      <div class="panel kpi" onclick="filterByStatus('Pending Evaluation')">
-        <div class="kpi-value warning" id="pending">0</div>
-        <div class="kpi-label">Pending / No Score</div>
-      </div>
-    </div>
+      <section class="kpis" id="kpiCards"></section>
 
-    <div class="center">
-      <div class="panel">
-        <div class="topbar">
-          <div>
-            <h1>Live COE Evaluation Dashboard</h1>
-            <div class="subtext" id="connectionStatus">Connecting to Google Sheet...</div>
+      <section class="grid middle">
+        <div class="panel">
+          <div class="panel-title">Average Evaluation Score ⓘ</div>
+          <div class="mini-value" id="avgScore">0</div>
+          <div class="mini-label">Current Average</div>
+
+          <div class="compare-box">
+            <div class="down-triangle"></div>
+            <div style="font-size:24px;font-weight:900;" id="belowPassing">0</div>
+            <div style="font-size:12px;">Below Passing</div>
           </div>
+        </div>
 
-          <div class="top-actions">
-            <div class="clock-box" id="liveClock">Loading date and time...</div>
-            <button class="secondary" onclick="toggleTheme()" id="themeButton">Day Mode</button>
-            <button onclick="loadData()">Refresh Data</button>
+        <div class="panel">
+          <div class="panel-title">Qualified Rate ⓘ</div>
+          <div class="gauge" id="qualifiedGauge" style="--p:0">
+            <div class="gauge-value" id="qualifiedRate">0%</div>
           </div>
         </div>
 
-        <div class="filters">
-          <select id="sourceFilter" onchange="applyFilters()">
-            <option value="">All Databases</option>
-          </select>
-
-          <select id="disciplineFilter" onchange="applyFilters()">
-            <option value="">All Disciplines</option>
-          </select>
-
-          <select id="heiFilter" onchange="applyFilters()">
-            <option value="">All HEIs</option>
-          </select>
-
-          <select id="programFilter" onchange="applyFilters()">
-            <option value="">All Programs</option>
-          </select>
-
-          <select id="statusFilter" onchange="applyFilters()">
-            <option value="">All Status</option>
-          </select>
-
-          <select id="remarksResultFilter" onchange="applyFilters()">
-            <option value="">All Remarks of Result</option>
-          </select>
-
-          <select id="evaluatorFilter" onchange="applyFilters()">
-            <option value="">All Evaluators</option>
-          </select>
-
-          <input
-            type="text"
-            id="searchInput"
-            placeholder="Search HEI, Discipline, Program, Remarks"
-            oninput="applyFilters()"
-          />
-        </div>
-      </div>
-
-      <div class="charts-two">
         <div class="panel">
-          <h2>Applications by Discipline / Program Group</h2>
-          <canvas id="disciplineChart"></canvas>
+          <div class="panel-title">Evaluation Progress ⓘ</div>
+          <div class="meter" id="progressMeter" style="--p:0"></div>
+          <div class="meter-center">✓</div>
+          <div class="mini-value" style="text-align:center;" id="progressRate">0%</div>
         </div>
 
         <div class="panel">
-          <h2>Qualification Summary</h2>
-          <canvas id="statusChart"></canvas>
-        </div>
-      </div>
-
-      <div class="charts-two">
-        <div class="panel">
-          <h2>Applications by HEI</h2>
-          <canvas id="heiChart"></canvas>
+          <div class="panel-title">Passing Score Rate ⓘ</div>
+          <div class="meter" id="passingMeter" style="--p:0"></div>
+          <div class="meter-center">👍</div>
+          <div class="mini-value" style="text-align:center;" id="passingRate">0%</div>
         </div>
 
         <div class="panel">
-          <h2>Remarks of Result Summary</h2>
-          <canvas id="remarksResultChart"></canvas>
+          <div class="panel-title">Result Summary ⓘ</div>
+          <div id="resultSummary"></div>
         </div>
-      </div>
+      </section>
 
-      <div class="charts-two">
+      <section class="grid charts">
         <div class="panel">
-          <h2>Applications by Program</h2>
-          <canvas id="programChart"></canvas>
+          <div class="panel-title">Applications Per Region ⓘ</div>
+          <canvas id="regionChart" height="230"></canvas>
         </div>
 
         <div class="panel">
-          <h2>Score Distribution</h2>
-          <canvas id="scoreRangeChart"></canvas>
+          <div class="panel-title">Applications Per Program ⓘ</div>
+          <canvas id="programChart" height="230"></canvas>
         </div>
-      </div>
 
-      <div class="panel">
-        <h2>Live COE Evaluation Dashboard</h2>
-        <div class="subtext">Click a row or the “Open” link to view the application file/link.</div>
-        <br>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>HEI</th>
-                <th>Discipline</th>
-                <th>Program</th>
-                <th>Passing Score</th>
-                <th>Score</th>
-                <th>Status</th>
-                <th>Evaluator</th>
-                <th>Date</th>
-                <th>Evaluator Remarks</th>
-                <th>Remarks of Result</th>
-                <th>Source</th>
-                <th>Link</th>
-              </tr>
-            </thead>
-            <tbody id="recordsTable"></tbody>
-          </table>
+        <div class="panel">
+          <div class="panel-title">Evaluation Result Summary ⓘ</div>
+          <canvas id="lineChart" height="230"></canvas>
         </div>
-      </div>
-    </div>
+      </section>
 
-    <div class="right">
-      <div class="panel">
-        <h2>Totals</h2>
+      <section class="panel table-panel">
+        <div class="table-head">
+          <div class="panel-title" style="margin:0;">Live COE Evaluation Database ⓘ</div>
 
-        <div class="mini-number" id="totalHEIs">0</div>
-        <div class="mini-label">Total HEIs</div>
-
-        <div class="mini-number" id="totalDisciplines">0</div>
-        <div class="mini-label">Total Disciplines / Program Groups</div>
-
-        <div class="mini-number" id="totalPrograms">0</div>
-        <div class="mini-label">Total Programs</div>
-
-        <div class="mini-number" id="averageScore">0</div>
-        <div class="mini-label">Average Score</div>
-      </div>
-
-      <div class="panel">
-        <h2>Qualification Rate</h2>
-        <canvas id="rateChart"></canvas>
-        <div class="subtext" id="rateText">0% qualified rate</div>
-      </div>
-
-      <div class="panel">
-        <h2>Evaluator Workload</h2>
-        <canvas id="evaluatorChart"></canvas>
-      </div>
-
-      <div class="panel">
-        <h2>Management Insight</h2>
-        <div class="insight-box" id="insightBox">
-          Waiting for live data...
+          <div class="search-wrap">
+            <input id="searchInput" placeholder="Search..." oninput="renderTable()" />
+            <select id="statusFilter" onchange="renderTable()">
+              <option value="">All Status</option>
+              <option value="Evaluated">Evaluated</option>
+              <option value="Pending">Pending</option>
+              <option value="Ongoing">Ongoing</option>
+              <option value="For Validation">For Validation</option>
+              <option value="For Deliberation">For Deliberation</option>
+            </select>
+            <select id="decisionFilter" onchange="renderTable()">
+              <option value="">All Results</option>
+              <option value="Passed">Passed</option>
+              <option value="For Deliberation">For Deliberation</option>
+              <option value="Failed">Failed</option>
+              <option value="Pending Evaluation">Pending Evaluation</option>
+            </select>
+          </div>
         </div>
+
+        <div class="table-scroll">
+          <table id="databaseTable"></table>
+        </div>
+      </section>
+
+      <div class="bottom-note">
+        All data is real-time and synchronized from Google Sheets <span class="live-dot"></span>
       </div>
-    </div>
+    </main>
   </div>
 
   <script>
-    const API_SOURCES = [
-      {
-        name: "Agriculture",
-        url: "https://script.google.com/macros/s/AKfycbwfXl68WvN7szsYgZIFGUz_kfgRrQTpGWPcZ16KeCMcVGL4uYUpg5U5TgfJ0YAxLVtybQ/exec"
-      },
-      {
-        name: "Other Program",
-        url: "https://script.google.com/macros/s/AKfycbzrDVon9-6Z7_2PIm6HYcyaHd6igE6hgx1Hzzj8KBC-zsOvz1COHzxmeZTfed2R_Vvm/exec"
-      }
-    ];
+    const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwfXl68WvN7szsYgZIFGUz_kfgRrQTpGWPcZ16KeCMcVGL4uYUpg5U5TgfJ0YAxLVtybQ/exec';
 
-    let allData = [];
-    let filteredData = [];
+    let dashboardData = {
+      records: [],
+      kpi: {}
+    };
 
-    let heiChart;
-    let statusChart;
-    let rateChart;
-    let scoreRangeChart;
-    let programChart;
-    let evaluatorChart;
-    let disciplineChart;
-    let remarksResultChart;
+    function loadDashboard() {
+      const callbackName = 'coeCallback_' + Date.now();
 
-    function startClock() {
-      updateClock();
-      setInterval(updateClock, 1000);
-    }
-
-    function updateClock() {
-      const now = new Date();
-
-      const options = {
-        timeZone: "Asia/Manila",
-        weekday: "short",
-        year: "numeric",
-        month: "short",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        hour12: true
+      window[callbackName] = function(data) {
+        dashboardData = normalizeData(data);
+        renderDashboard();
+        delete window[callbackName];
+        script.remove();
       };
 
-      document.getElementById("liveClock").textContent =
-        new Intl.DateTimeFormat("en-PH", options).format(now);
+      const script = document.createElement('script');
+      script.src = GAS_WEB_APP_URL + '?mode=data&callback=' + callbackName + '&t=' + Date.now();
+
+      script.onerror = function() {
+        document.getElementById('updatedText').textContent =
+          'Connection failed. Check Apps Script deployment access.';
+      };
+
+      document.body.appendChild(script);
     }
 
-    function toggleTheme() {
-      const html = document.documentElement;
-      const currentTheme = html.getAttribute("data-theme");
-      const nextTheme = currentTheme === "night" ? "day" : "night";
+    function normalizeData(data) {
+      const records = data.records || data.recentRows || [];
 
-      html.setAttribute("data-theme", nextTheme);
-      localStorage.setItem("dashboardTheme", nextTheme);
-
-      document.getElementById("themeButton").textContent =
-        nextTheme === "night" ? "Day Mode" : "Night Mode";
-
-      renderCharts(filteredData, getQualificationRate(filteredData));
-    }
-
-    function loadSavedTheme() {
-      const savedTheme = localStorage.getItem("dashboardTheme") || "night";
-      document.documentElement.setAttribute("data-theme", savedTheme);
-
-      document.getElementById("themeButton").textContent =
-        savedTheme === "night" ? "Day Mode" : "Night Mode";
-    }
-
-    async function loadData() {
-      const status = document.getElementById("connectionStatus");
-      status.textContent = "Loading merged live data from Google Sheets...";
-
-      try {
-        const results = await Promise.all(
-          API_SOURCES.map(async source => {
-            try {
-              const response = await fetch(`${source.url}?action=getData`);
-              const result = await response.json();
-
-              if (!result.success) {
-                console.warn(source.name, result.message);
-                return [];
-              }
-
-              return (result.data || []).map(item => normalizeRecord(item, source.name));
-            } catch (error) {
-              console.error("Failed source:", source.name, error);
-              return [];
-            }
-          })
-        );
-
-        allData = results.flat();
-        filteredData = [...allData];
-
-        populateFilters();
-        updateDashboard(filteredData);
-
-        status.textContent =
-          `Connected. Merged ${API_SOURCES.length} database source(s). Last updated: ${new Date().toLocaleString()}`;
-
-      } catch (error) {
-        console.error(error);
-        status.textContent = "Connection failed. Please check Apps Script URLs and deployment access.";
-      }
-    }
-
-    function normalizeRecord(item, sourceName) {
-      const score = Number(item.score || item.Score || 0);
-      const passingScore = Number(item.passingScore || item["Passing Score"] || 60);
-
-      let status = item.status || item.Status || "Pending Evaluation";
-
-      if (!item.status && !item.Status) {
-        if (score >= passingScore && score > 0) status = "Qualified";
-        else if (score > 0 && score < passingScore) status = "Not Qualified";
-      }
-
-      const remarks = item.remarks || item["Remarks"] || item.evaluatorRemarks || "";
+      const total = records.length || data?.kpi?.totalApplications || data?.summary?.totalApplications || 0;
+      const passed = countByDecision(records, ['Passed', 'QUALIFIED / PASSED']) || data?.kpi?.passed || data?.summary?.passed || 0;
+      const delib = countByDecision(records, ['For Deliberation', 'FOR DELIBERATION']) || data?.kpi?.forDeliberation || 0;
+      const failed = countByDecision(records, ['Failed', 'Not Qualified']) || 0;
+      const pending = countByDecision(records, ['Pending Evaluation', 'Pending']) || data?.kpi?.pending || data?.summary?.pending || 0;
+      const evaluated = countByStatus(records, 'Evaluated') || data?.kpi?.evaluated || data?.summary?.evaluated || 0;
 
       return {
-        hei: item.hei || item.HEI || item["HEI"] || item["Higher Education Institution"] || "",
-        discipline: item.discipline || item.Discipline || sourceName || "Unspecified",
-        program: item.program || item.Program || "",
-        evaluationRubric: item.evaluationRubric || item["Evaluation Rubric"] || "",
-        applicationLink: item.applicationLink || item["Application Link"] || item.link || "",
-        passingScore: passingScore,
-        score: score,
-        evaluator: item.evaluator || item.Evaluator || "",
-        dateOfEvaluation: item.dateOfEvaluation || item["Date of Evaluation"] || "",
-        remarks: remarks,
-        remarksOfResult: item.remarksOfResult || generateRemarksOfResult(remarks, status, score, passingScore),
-        status: status,
-        source: sourceName
+        updatedAt: data.updatedAt || new Date().toLocaleString(),
+        records,
+        kpi: {
+          totalApplications: total,
+          uniqueHEIs: data?.kpi?.uniqueHEIs || data?.summary?.uniqueHEIs || uniqueCount(records, 'hei'),
+          regionsCovered: data?.kpi?.regionsCovered || data?.summary?.regionsCovered || uniqueCount(records, 'region'),
+          evaluated,
+          passed,
+          forDeliberation: delib,
+          failed,
+          pending
+        },
+        regionTable: data.regionTable || data.regionSummary || buildRegionTable(records),
+        decisionTable: data.decisionTable || data.decisionSummary || buildDecisionTable(records),
+        evaluatorTable: data.evaluatorTable || data.evaluatorSummary || [],
+        statusTable: data.statusTable || data.statusSummary || buildStatusTable(records)
       };
     }
 
-    function generateRemarksOfResult(remarks, status, score, passingScore) {
-      const text = String(remarks || "").toLowerCase();
+    function renderDashboard() {
+      const k = dashboardData.kpi;
+      const total = Number(k.totalApplications) || 0;
+      const passed = Number(k.passed) || 0;
+      const delib = Number(k.forDeliberation) || 0;
+      const failed = Number(k.failed) || 0;
+      const pending = Number(k.pending) || 0;
+      const evaluated = Number(k.evaluated) || 0;
 
-      if (!text && status === "Pending Evaluation") return "Pending Evaluation";
+      document.getElementById('updatedText').textContent = 'Last Updated: ' + dashboardData.updatedAt;
 
-      if (
-        text.includes("complete") ||
-        text.includes("complied") ||
-        text.includes("satisfactory") ||
-        text.includes("passed") ||
-        text.includes("qualified") ||
-        text.includes("recommended")
-      ) {
-        return "Qualified / For Endorsement";
+      document.getElementById('kpiCards').innerHTML = [
+        {
+          label: 'Total Applications',
+          value: total,
+          sub: 'All time',
+          color: 'blue',
+          icon: '📋',
+          iconClass: 'icon-blue'
+        },
+        {
+          label: 'Qualified / Passed',
+          value: passed,
+          sub: percent(passed, total) + ' of total',
+          color: 'green',
+          icon: '✓',
+          iconClass: 'icon-green'
+        },
+        {
+          label: 'For Deliberation',
+          value: delib,
+          sub: percent(delib, total) + ' of total',
+          color: 'yellow',
+          icon: '⚖',
+          iconClass: 'icon-yellow'
+        },
+        {
+          label: 'Not Qualified / Failed',
+          value: failed,
+          sub: percent(failed, total) + ' of total',
+          color: 'red',
+          icon: '×',
+          iconClass: 'icon-red'
+        },
+        {
+          label: 'Pending Evaluation',
+          value: pending,
+          sub: percent(pending, total) + ' of total',
+          color: 'purple',
+          icon: '◷',
+          iconClass: 'icon-purple'
+        }
+      ].map(card => `
+        <div class="kpi">
+          <div class="kpi-icon ${card.iconClass}">${card.icon}</div>
+          <div>
+            <div class="kpi-label">${card.label}</div>
+            <div class="kpi-value ${card.color}">${card.value}</div>
+            <div class="kpi-sub">${card.sub}</div>
+            <div class="kpi-sub green">↗ Real-time</div>
+          </div>
+        </div>
+      `).join('');
+
+      const avg = averageScore(dashboardData.records);
+      const below = dashboardData.records.filter(r => Number(r.score || 0) > 0 && String(r.decision).toLowerCase().includes('deliberation')).length;
+
+      document.getElementById('avgScore').textContent = avg ? avg.toFixed(2) : '0';
+      document.getElementById('belowPassing').textContent = below;
+
+      const qualifiedRate = ratio(passed, total);
+      const progressRate = ratio(evaluated, total);
+      const passingRate = ratio(passed, evaluated || total);
+
+      setGauge('qualifiedGauge', 'qualifiedRate', qualifiedRate);
+      setMeter('progressMeter', 'progressRate', progressRate);
+      setMeter('passingMeter', 'passingRate', passingRate);
+
+      document.getElementById('resultSummary').innerHTML = `
+        <div class="summary-row">
+          <div class="summary-emoji" style="background:rgba(94,227,94,.18);">😊</div>
+          <div>
+            <div class="summary-num">${percent(passed, total)}</div>
+            <div class="summary-text">Qualified / Passed</div>
+          </div>
+        </div>
+        <div class="summary-row">
+          <div class="summary-emoji" style="background:rgba(250,204,21,.18);">😐</div>
+          <div>
+            <div class="summary-num">${percent(delib, total)}</div>
+            <div class="summary-text">For Deliberation</div>
+          </div>
+        </div>
+        <div class="summary-row">
+          <div class="summary-emoji" style="background:rgba(251,77,92,.18);">☹</div>
+          <div>
+            <div class="summary-num">${percent(failed, total)}</div>
+            <div class="summary-text">Not Qualified / Failed</div>
+          </div>
+        </div>
+      `;
+
+      drawRegionChart();
+      drawProgramChart();
+      drawLineChart();
+      renderTable();
+    }
+
+    function renderTable() {
+      const search = document.getElementById('searchInput').value.toLowerCase().trim();
+      const status = document.getElementById('statusFilter').value;
+      const decision = document.getElementById('decisionFilter').value;
+
+      let rows = dashboardData.records || [];
+
+      if (search) {
+        rows = rows.filter(r => [
+          r.no,
+          r.region,
+          r.hei,
+          r.program,
+          r.evaluator,
+          r.score,
+          r.rating,
+          r.decision,
+          r.evaluationResult,
+          r.status,
+          r.remarks
+        ].join(' ').toLowerCase().includes(search));
       }
 
-      if (
-        text.includes("missing") ||
-        text.includes("incomplete") ||
-        text.includes("lack") ||
-        text.includes("lacking") ||
-        text.includes("deficiency") ||
-        text.includes("deficiencies") ||
-        text.includes("for compliance")
-      ) {
-        return "For Compliance";
+      if (status) {
+        rows = rows.filter(r => String(r.status || '') === status);
       }
 
-      if (
-        text.includes("validate") ||
-        text.includes("validation") ||
-        text.includes("review") ||
-        text.includes("re-evaluation") ||
-        text.includes("reevaluation") ||
-        text.includes("further evaluation")
-      ) {
-        return "Subject for Re-evaluation";
+      if (decision) {
+        rows = rows.filter(r => String(r.decision || r.evaluationResult || '') === decision);
       }
 
-      if (
-        text.includes("not qualified") ||
-        text.includes("failed") ||
-        text.includes("did not meet") ||
-        text.includes("below") ||
-        text.includes("insufficient")
-      ) {
-        return "Not Qualified";
-      }
+      const headers = [
+        '#',
+        'Region',
+        'HEI Name',
+        'Program',
+        'Evaluator',
+        'Score',
+        'Rating',
+        'Decision',
+        'Evaluation Result',
+        'Status'
+      ];
 
-      if (score > 0 && score < passingScore) return "Did Not Meet Passing Score";
-      if (score >= passingScore && score > 0) return "Qualified / For Endorsement";
+      const body = rows.map((r, i) => `
+        <tr>
+          <td>${escapeHtml(r.no || i + 1)}</td>
+          <td>${escapeHtml(r.region || '')}</td>
+          <td class="left">${escapeHtml(r.hei || '')}</td>
+          <td class="left">${escapeHtml(r.program || '')}</td>
+          <td>${escapeHtml(r.evaluator || 'Unassigned')}</td>
+          <td>${escapeHtml(r.score || '')}</td>
+          <td>${ratingPill(r.rating)}</td>
+          <td>${decisionPill(r.decision)}</td>
+          <td>${resultPill(r.evaluationResult || r.decision)}</td>
+          <td>${statusPill(r.status)}</td>
+        </tr>
+      `).join('');
 
-      return "For Review";
-    }
-
-    function populateFilters() {
-      fillSelect("sourceFilter", "All Databases", uniqueValues("source"));
-      fillSelect("disciplineFilter", "All Disciplines", uniqueValues("discipline"));
-      fillSelect("heiFilter", "All HEIs", uniqueValues("hei"));
-      fillSelect("programFilter", "All Programs", uniqueValues("program"));
-      fillSelect("statusFilter", "All Status", uniqueValues("status"));
-      fillSelect("remarksResultFilter", "All Remarks of Result", uniqueValues("remarksOfResult"));
-      fillSelect("evaluatorFilter", "All Evaluators", uniqueValues("evaluator"));
-    }
-
-    function fillSelect(id, defaultText, values) {
-      const select = document.getElementById(id);
-      const currentValue = select.value;
-
-      select.innerHTML = `<option value="">${defaultText}</option>`;
-
-      values.forEach(value => {
-        select.innerHTML += `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`;
-      });
-
-      if (values.includes(currentValue)) {
-        select.value = currentValue;
-      }
-    }
-
-    function uniqueValues(field) {
-      return [...new Set(allData.map(item => item[field]).filter(Boolean))].sort();
-    }
-
-    function applyFilters() {
-      const source = document.getElementById("sourceFilter").value;
-      const discipline = document.getElementById("disciplineFilter").value;
-      const hei = document.getElementById("heiFilter").value;
-      const program = document.getElementById("programFilter").value;
-      const status = document.getElementById("statusFilter").value;
-      const remarksResult = document.getElementById("remarksResultFilter").value;
-      const evaluator = document.getElementById("evaluatorFilter").value;
-      const search = document.getElementById("searchInput").value.toLowerCase();
-
-      filteredData = allData.filter(item => {
-        const text = `
-          ${item.hei || ""}
-          ${item.discipline || ""}
-          ${item.program || ""}
-          ${item.remarks || ""}
-          ${item.remarksOfResult || ""}
-          ${item.evaluator || ""}
-          ${item.source || ""}
-        `.toLowerCase();
-
-        return (!source || item.source === source) &&
-          (!discipline || item.discipline === discipline) &&
-          (!hei || item.hei === hei) &&
-          (!program || item.program === program) &&
-          (!status || item.status === status) &&
-          (!remarksResult || item.remarksOfResult === remarksResult) &&
-          (!evaluator || item.evaluator === evaluator) &&
-          (!search || text.includes(search));
-      });
-
-      updateDashboard(filteredData);
-    }
-
-    function filterByStatus(status) {
-      document.getElementById("statusFilter").value = status;
-      applyFilters();
-    }
-
-    function clearFilters() {
-      [
-        "sourceFilter",
-        "disciplineFilter",
-        "heiFilter",
-        "programFilter",
-        "statusFilter",
-        "remarksResultFilter",
-        "evaluatorFilter"
-      ].forEach(id => document.getElementById(id).value = "");
-
-      document.getElementById("searchInput").value = "";
-      applyFilters();
-    }
-
-    function updateDashboard(data) {
-      const totalApplications = data.length;
-      const totalHEIs = new Set(data.map(item => item.hei).filter(Boolean)).size;
-      const totalPrograms = new Set(data.map(item => item.program).filter(Boolean)).size;
-      const totalDisciplines = new Set(data.map(item => item.discipline).filter(Boolean)).size;
-
-      const qualified = data.filter(item => item.status === "Qualified").length;
-      const notQualified = data.filter(item => item.status === "Not Qualified").length;
-      const pending = data.filter(item => item.status === "Pending Evaluation").length;
-
-      const scoredData = data.filter(item => Number(item.score || 0) > 0);
-      const averageScore = scoredData.length
-        ? (scoredData.reduce((sum, item) => sum + Number(item.score || 0), 0) / scoredData.length).toFixed(2)
-        : 0;
-
-      const qualificationRate = getQualificationRate(data);
-
-      document.getElementById("totalApplications").textContent = totalApplications.toLocaleString();
-      document.getElementById("qualified").textContent = qualified.toLocaleString();
-      document.getElementById("notQualified").textContent = notQualified.toLocaleString();
-      document.getElementById("pending").textContent = pending.toLocaleString();
-
-      document.getElementById("totalHEIs").textContent = totalHEIs.toLocaleString();
-      document.getElementById("totalPrograms").textContent = totalPrograms.toLocaleString();
-      document.getElementById("totalDisciplines").textContent = totalDisciplines.toLocaleString();
-      document.getElementById("averageScore").textContent = averageScore;
-
-      document.getElementById("rateText").textContent = `${qualificationRate}% qualified rate`;
-
-      renderTable(data);
-      renderCharts(data, qualificationRate);
-      renderInsight(data, qualified, notQualified, pending, qualificationRate, averageScore);
-    }
-
-    function getQualificationRate(data) {
-      const total = data.length;
-      const qualified = data.filter(item => item.status === "Qualified").length;
-      return total ? ((qualified / total) * 100).toFixed(2) : 0;
-    }
-
-    function renderTable(data) {
-      const tbody = document.getElementById("recordsTable");
-      tbody.innerHTML = "";
-
-      const latest = [...data].slice(-200).reverse();
-
-      latest.forEach(item => {
-        const badgeClass = getBadgeClass(item.status);
-        const link = item.applicationLink || "";
-
-        tbody.innerHTML += `
-          <tr class="clickable-row" onclick="openRecord('${escapeJs(link)}')">
-            <td>${escapeHtml(item.hei || "")}</td>
-            <td>${escapeHtml(item.discipline || "")}</td>
-            <td>${escapeHtml(item.program || "")}</td>
-            <td>${escapeHtml(item.passingScore || "")}</td>
-            <td class="score-cell">${escapeHtml(item.score || "")}</td>
-            <td><span class="badge ${badgeClass}">${escapeHtml(item.status || "")}</span></td>
-            <td>${escapeHtml(item.evaluator || "")}</td>
-            <td>${escapeHtml(item.dateOfEvaluation || "")}</td>
-            <td>${escapeHtml(item.remarks || "")}</td>
-            <td>${escapeHtml(item.remarksOfResult || "")}</td>
-            <td><span class="source-pill">${escapeHtml(item.source || "")}</span></td>
-            <td>${link ? `<a class="link-btn" href="${escapeAttribute(link)}" target="_blank" onclick="event.stopPropagation()">Open</a>` : ""}</td>
-          </tr>
-        `;
-      });
-    }
-
-    function openRecord(link) {
-      if (link && link !== "undefined" && link !== "null") {
-        window.open(link, "_blank");
-      }
-    }
-
-    function getBadgeClass(status) {
-      if (status === "Qualified") return "badge-qualified";
-      if (status === "Not Qualified") return "badge-not-qualified";
-      return "badge-pending";
-    }
-
-    function renderCharts(data, qualificationRate) {
-      const byDiscipline = countBy(data, "discipline");
-      const byHEI = countBy(data, "hei");
-      const byStatus = countBy(data, "status");
-      const byProgram = countBy(data, "program");
-      const byEvaluator = countBy(data, "evaluator");
-      const byRemarksOfResult = countBy(data, "remarksOfResult");
-      const scoreRanges = buildScoreRanges(data);
-
-      const topDisciplines = topEntries(byDiscipline, 10);
-      const topHEIs = topEntries(byHEI, 8);
-      const topPrograms = topEntries(byProgram, 8);
-      const evaluators = topEntries(byEvaluator, 8);
-      const remarksResults = topEntries(byRemarksOfResult, 8);
-
-      destroyCharts();
-
-      disciplineChart = makeChart("disciplineChart", "bar",
-        topDisciplines.map(item => item[0]),
-        [{ label: "Applications", data: topDisciplines.map(item => item[1]), backgroundColor: "#18c6ff" }],
-        chartOptions("y")
-      );
-
-      heiChart = makeChart("heiChart", "bar",
-        topHEIs.map(item => item[0]),
-        [{ label: "Applications", data: topHEIs.map(item => item[1]), backgroundColor: "#a78bfa" }],
-        chartOptions("y")
-      );
-
-      programChart = makeChart("programChart", "bar",
-        topPrograms.map(item => item[0]),
-        [{ label: "Applications", data: topPrograms.map(item => item[1]), backgroundColor: "#f5c84c" }],
-        chartOptions("y")
-      );
-
-      evaluatorChart = makeChart("evaluatorChart", "bar",
-        evaluators.map(item => item[0]),
-        [{ label: "Evaluated", data: evaluators.map(item => item[1]), backgroundColor: "#4ade80" }],
-        chartOptions("y")
-      );
-
-      statusChart = makeChart("statusChart", "doughnut",
-        Object.keys(byStatus),
-        [{ data: Object.values(byStatus), backgroundColor: ["#4ade80", "#ff5b5b", "#f5c84c", "#18c6ff"] }],
-        doughnutOptions()
-      );
-
-      remarksResultChart = makeChart("remarksResultChart", "doughnut",
-        remarksResults.map(item => item[0]),
-        [{ data: remarksResults.map(item => item[1]), backgroundColor: ["#18c6ff", "#4ade80", "#f5c84c", "#ff5b5b", "#a78bfa", "#38bdf8"] }],
-        doughnutOptions()
-      );
-
-      rateChart = makeChart("rateChart", "doughnut",
-        ["Qualified", "Others"],
-        [{ data: [Number(qualificationRate), 100 - Number(qualificationRate)], backgroundColor: ["#18c6ff", "#3b3f73"] }],
-        { ...doughnutOptions(), cutout: "75%" }
-      );
-
-      scoreRangeChart = makeChart("scoreRangeChart", "bar",
-        Object.keys(scoreRanges),
-        [{ label: "Records", data: Object.values(scoreRanges), backgroundColor: "#f5c84c" }],
-        chartOptions()
-      );
-    }
-
-    function makeChart(id, type, labels, datasets, options) {
-      return new Chart(document.getElementById(id), {
-        type,
-        data: { labels, datasets },
-        options
-      });
-    }
-
-    function destroyCharts() {
-      [
-        heiChart,
-        statusChart,
-        rateChart,
-        scoreRangeChart,
-        programChart,
-        evaluatorChart,
-        disciplineChart,
-        remarksResultChart
-      ].forEach(chart => {
-        if (chart) chart.destroy();
-      });
-    }
-
-    function countBy(data, field) {
-      const result = {};
-      data.forEach(item => {
-        const key = item[field] || "Unspecified";
-        result[key] = (result[key] || 0) + 1;
-      });
-      return result;
-    }
-
-    function topEntries(obj, limit) {
-      return Object.entries(obj).sort((a, b) => b[1] - a[1]).slice(0, limit);
-    }
-
-    function buildScoreRanges(data) {
-      const ranges = {
-        "90+": 0,
-        "80-89": 0,
-        "70-79": 0,
-        "60-69": 0,
-        "Below 60": 0,
-        "No Score": 0
-      };
-
-      data.forEach(item => {
-        const score = Number(item.score || 0);
-
-        if (!score) ranges["No Score"]++;
-        else if (score >= 90) ranges["90+"]++;
-        else if (score >= 80) ranges["80-89"]++;
-        else if (score >= 70) ranges["70-79"]++;
-        else if (score >= 60) ranges["60-69"]++;
-        else ranges["Below 60"]++;
-      });
-
-      return ranges;
-    }
-
-    function renderInsight(data, qualified, notQualified, pending, qualificationRate, averageScore) {
-      const topSource = getTopValue(countBy(data, "source"));
-      const topDiscipline = getTopValue(countBy(data, "discipline"));
-      const topHEI = getTopValue(countBy(data, "hei"));
-      const topProgram = getTopValue(countBy(data, "program"));
-      const topRemarksResult = getTopValue(countBy(data, "remarksOfResult"));
-
-      document.getElementById("insightBox").innerHTML = `
-        The merged dashboard currently shows <b>${data.length.toLocaleString()}</b> application records.
-        <br><br>
-        <b>${qualified.toLocaleString()}</b> are qualified,
-        <b>${notQualified.toLocaleString()}</b> are not qualified, and
-        <b>${pending.toLocaleString()}</b> are pending or without score.
-        <br><br>
-        The current qualification rate is <b>${qualificationRate}%</b>, with an average score of <b>${averageScore}</b>.
-        ${topSource ? `<br><br>The database source with the highest number of entries is <b>${escapeHtml(topSource)}</b>.` : ""}
-        ${topDiscipline ? `<br><br>The leading discipline/program group is <b>${escapeHtml(topDiscipline)}</b>.` : ""}
-        ${topHEI ? `<br><br>The HEI with the highest number of entries is <b>${escapeHtml(topHEI)}</b>.` : ""}
-        ${topProgram ? `<br><br>The most common program entry is <b>${escapeHtml(topProgram)}</b>.` : ""}
-        ${topRemarksResult ? `<br><br>The most common remarks of result is <b>${escapeHtml(topRemarksResult)}</b>.` : ""}
+      document.getElementById('databaseTable').innerHTML = `
+        <thead>
+          <tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>
+        </thead>
+        <tbody>
+          ${body || `<tr><td colspan="10">No records found.</td></tr>`}
+        </tbody>
       `;
     }
 
-    function getTopValue(obj) {
-      const entries = Object.entries(obj).filter(item => item[0] !== "Unspecified");
-      if (!entries.length) return "";
-      return entries.sort((a, b) => b[1] - a[1])[0][0];
+    function drawRegionChart() {
+      const table = dashboardData.regionTable || buildRegionTable(dashboardData.records);
+      const rows = table.slice(1).slice(0, 8);
+      const labels = rows.map(r => String(r[0] || ''));
+      const values = rows.map(r => Number(r[1] || 0));
+      drawBarChart('regionChart', labels, values);
     }
 
-    function chartOptions(indexAxis = "x") {
-      const textColor = getComputedStyle(document.documentElement).getPropertyValue("--muted").trim();
-      const gridColor = getComputedStyle(document.documentElement).getPropertyValue("--border").trim();
+    function drawProgramChart() {
+      const programMap = {};
+      dashboardData.records.forEach(r => {
+        const p = r.program || 'No Program';
+        programMap[p] = (programMap[p] || 0) + 1;
+      });
 
-      return {
-        responsive: true,
-        maintainAspectRatio: false,
-        indexAxis,
-        plugins: {
-          legend: {
-            labels: { color: textColor }
-          }
-        },
-        scales: indexAxis === "x" ? {
-          x: {
-            ticks: {
-              color: textColor,
-              maxRotation: 35
-            },
-            grid: {
-              color: gridColor
-            }
-          },
-          y: {
-            ticks: {
-              color: textColor
-            },
-            grid: {
-              color: gridColor
-            },
-            beginAtZero: true
-          }
-        } : {
-          x: {
-            ticks: {
-              color: textColor
-            },
-            grid: {
-              color: gridColor
-            },
-            beginAtZero: true
-          },
-          y: {
-            ticks: {
-              color: textColor
-            },
-            grid: {
-              color: gridColor
-            }
-          }
-        }
-      };
+      const sorted = Object.entries(programMap)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5);
+
+      drawDonutChart('programChart', sorted.map(x => x[0]), sorted.map(x => x[1]));
     }
 
-    function doughnutOptions() {
-      const textColor = getComputedStyle(document.documentElement).getPropertyValue("--muted").trim();
+    function drawLineChart() {
+      const labels = ['Total', 'Passed', 'Deliberation', 'Failed', 'Pending'];
+      const k = dashboardData.kpi;
+      const values = [
+        k.totalApplications || 0,
+        k.passed || 0,
+        k.forDeliberation || 0,
+        k.failed || 0,
+        k.pending || 0
+      ];
 
-      return {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            labels: { color: textColor }
-          }
-        }
-      };
+      drawLineLikeChart('lineChart', labels, values);
+    }
+
+    function drawBarChart(id, labels, values) {
+      const canvas = document.getElementById(id);
+      const ctx = prepareCanvas(canvas);
+      const w = canvas.width;
+      const h = canvas.height;
+      const pad = 35;
+      const max = Math.max(...values, 1);
+      const barW = (w - pad * 2) / Math.max(values.length, 1) * 0.58;
+
+      ctx.clearRect(0, 0, w, h);
+      drawGrid(ctx, w, h, pad);
+
+      values.forEach((v, i) => {
+        const x = pad + i * ((w - pad * 2) / values.length) + barW * 0.35;
+        const bh = (h - pad * 2) * (v / max);
+        const y = h - pad - bh;
+
+        const grad = ctx.createLinearGradient(0, y, 0, h - pad);
+        grad.addColorStop(0, '#60a5fa');
+        grad.addColorStop(1, '#1d4ed8');
+
+        ctx.fillStyle = grad;
+        roundRect(ctx, x, y, barW, bh, 5);
+        ctx.fill();
+
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = 'bold 12px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(v, x + barW / 2, y - 8);
+
+        ctx.fillStyle = '#a8b3c7';
+        ctx.font = '11px Arial';
+        ctx.fillText(shortLabel(labels[i], 10), x + barW / 2, h - 9);
+      });
+    }
+
+    function drawDonutChart(id, labels, values) {
+      const canvas = document.getElementById(id);
+      const ctx = prepareCanvas(canvas);
+      const w = canvas.width;
+      const h = canvas.height;
+      const cx = w * 0.33;
+      const cy = h * 0.52;
+      const radius = Math.min(w, h) * 0.28;
+      const total = values.reduce((a, b) => a + b, 0) || 1;
+      const colors = ['#3b82f6', '#22c55e', '#facc15', '#f97316', '#a855f7'];
+
+      ctx.clearRect(0, 0, w, h);
+
+      let start = -Math.PI / 2;
+
+      values.forEach((v, i) => {
+        const angle = (v / total) * Math.PI * 2;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, radius, start, start + angle);
+        ctx.closePath();
+        ctx.fillStyle = colors[i % colors.length];
+        ctx.fill();
+        start += angle;
+      });
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius * 0.55, 0, Math.PI * 2);
+      ctx.fillStyle = '#102845';
+      ctx.fill();
+
+      let legendY = 45;
+      labels.forEach((label, i) => {
+        ctx.fillStyle = colors[i % colors.length];
+        roundRect(ctx, w * 0.62, legendY - 10, 12, 12, 3);
+        ctx.fill();
+
+        ctx.fillStyle = '#dbeafe';
+        ctx.font = '12px Arial';
+        ctx.textAlign = 'left';
+        ctx.fillText(shortLabel(label, 18), w * 0.62 + 18, legendY);
+
+        ctx.fillStyle = '#cbd5e1';
+        ctx.textAlign = 'right';
+        ctx.fillText(values[i] + ' (' + percent(values[i], total) + ')', w - 12, legendY);
+
+        legendY += 25;
+      });
+    }
+
+    function drawLineLikeChart(id, labels, values) {
+      const canvas = document.getElementById(id);
+      const ctx = prepareCanvas(canvas);
+      const w = canvas.width;
+      const h = canvas.height;
+      const pad = 38;
+      const max = Math.max(...values, 1);
+
+      ctx.clearRect(0, 0, w, h);
+      drawGrid(ctx, w, h, pad);
+
+      const points = values.map((v, i) => {
+        const x = pad + i * ((w - pad * 2) / Math.max(values.length - 1, 1));
+        const y = h - pad - ((h - pad * 2) * (v / max));
+        return { x, y, v };
+      });
+
+      ctx.strokeStyle = '#5ee35e';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+
+      points.forEach((p, i) => {
+        if (i === 0) ctx.moveTo(p.x, p.y);
+        else ctx.lineTo(p.x, p.y);
+      });
+
+      ctx.stroke();
+
+      points.forEach((p, i) => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+        ctx.fillStyle = '#5ee35e';
+        ctx.fill();
+
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = 'bold 12px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(p.v, p.x, p.y - 12);
+
+        ctx.fillStyle = '#a8b3c7';
+        ctx.font = '11px Arial';
+        ctx.fillText(labels[i], p.x, h - 10);
+      });
+    }
+
+    function prepareCanvas(canvas) {
+      const ratio = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * ratio;
+      canvas.height = rect.height * ratio;
+      const ctx = canvas.getContext('2d');
+      ctx.scale(ratio, ratio);
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+      return canvas.getContext('2d');
+    }
+
+    function drawGrid(ctx, w, h, pad) {
+      ctx.strokeStyle = 'rgba(148,163,184,.14)';
+      ctx.lineWidth = 1;
+
+      for (let i = 0; i < 5; i++) {
+        const y = pad + i * ((h - pad * 2) / 4);
+        ctx.beginPath();
+        ctx.moveTo(pad, y);
+        ctx.lineTo(w - pad, y);
+        ctx.stroke();
+      }
+    }
+
+    function setGauge(gaugeId, valueId, value) {
+      const p = Math.max(0, Math.min(100, value));
+      document.getElementById(gaugeId).style.setProperty('--p', p);
+      document.getElementById(valueId).textContent = p.toFixed(0) + '%';
+    }
+
+    function setMeter(meterId, valueId, value) {
+      const p = Math.max(0, Math.min(100, value));
+      document.getElementById(meterId).style.setProperty('--p', p);
+      document.getElementById(valueId).textContent = p.toFixed(0) + '%';
+    }
+
+    function buildRegionTable(records) {
+      const map = {};
+      records.forEach(r => {
+        const key = r.region || 'No Region';
+        if (!map[key]) map[key] = 0;
+        map[key]++;
+      });
+
+      return [['Region', 'Applications']]
+        .concat(Object.entries(map).map(([k, v]) => [k, v]));
+    }
+
+    function buildDecisionTable(records) {
+      const map = {};
+      records.forEach(r => {
+        const key = r.decision || r.evaluationResult || 'Pending Evaluation';
+        map[key] = (map[key] || 0) + 1;
+      });
+
+      return [['Decision', 'Count']]
+        .concat(Object.entries(map).map(([k, v]) => [k, v]));
+    }
+
+    function buildStatusTable(records) {
+      const map = {};
+      records.forEach(r => {
+        const key = r.status || 'Pending';
+        map[key] = (map[key] || 0) + 1;
+      });
+
+      return [['Status', 'Count']]
+        .concat(Object.entries(map).map(([k, v]) => [k, v]));
+    }
+
+    function countByDecision(records, terms) {
+      return records.filter(r => {
+        const d = String(r.decision || r.evaluationResult || '').toLowerCase();
+        return terms.some(t => d === String(t).toLowerCase() || d.includes(String(t).toLowerCase()));
+      }).length;
+    }
+
+    function countByStatus(records, term) {
+      return records.filter(r => String(r.status || '').toLowerCase() === term.toLowerCase()).length;
+    }
+
+    function uniqueCount(records, key) {
+      const set = new Set();
+      records.forEach(r => {
+        if (r[key]) set.add(String(r[key]).trim().toUpperCase());
+      });
+      return set.size;
+    }
+
+    function averageScore(records) {
+      const scores = records.map(r => Number(r.score || 0)).filter(v => v > 0);
+      if (!scores.length) return 0;
+      return scores.reduce((a, b) => a + b, 0) / scores.length;
+    }
+
+    function ratio(a, b) {
+      if (!b) return 0;
+      return (a / b) * 100;
+    }
+
+    function percent(a, b) {
+      if (!b) return '0%';
+      return ((a / b) * 100).toFixed(2) + '%';
+    }
+
+    function ratingPill(value) {
+      const v = String(value || 'Pending');
+      let cls = 'pending';
+
+      if (v.includes('Excellent') || v.includes('Very') || v.includes('Satisfactory') || v === 'Passed') cls = 'pass';
+      if (v.includes('Below')) cls = 'fail';
+
+      return `<span class="pill ${cls}">${escapeHtml(v)}</span>`;
+    }
+
+    function decisionPill(value) {
+      const v = String(value || 'Pending Evaluation');
+      let cls = 'pending';
+
+      if (v.includes('Passed') || v.includes('Qualified')) cls = 'pass';
+      if (v.includes('Deliberation')) cls = 'delib';
+      if (v.includes('Failed') || v.includes('Not Qualified')) cls = 'fail';
+
+      return `<span class="pill ${cls}">${escapeHtml(v)}</span>`;
+    }
+
+    function resultPill(value) {
+      return decisionPill(value);
+    }
+
+    function statusPill(value) {
+      const v = String(value || 'Pending');
+      let cls = 'pending';
+
+      if (v === 'Evaluated') cls = 'pass';
+      if (v.includes('Deliberation')) cls = 'delib';
+
+      return `<span class="pill ${cls}">${escapeHtml(v)}</span>`;
+    }
+
+    function shortLabel(label, max) {
+      const s = String(label || '');
+      return s.length > max ? s.slice(0, max - 1) + '…' : s;
     }
 
     function escapeHtml(value) {
-      return String(value)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
+      return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
     }
 
-    function escapeAttribute(value) {
-      return String(value)
-        .replaceAll('"', "%22")
-        .replaceAll("'", "%27");
+    function roundRect(ctx, x, y, w, h, r) {
+      const radius = Math.min(r, w / 2, h / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.arcTo(x + w, y, x + w, y + h, radius);
+      ctx.arcTo(x + w, y + h, x, y + h, radius);
+      ctx.arcTo(x, y + h, x, y, radius);
+      ctx.arcTo(x, y, x + w, y, radius);
+      ctx.closePath();
     }
 
-    function escapeJs(value) {
-      return String(value || "")
-        .replaceAll("\\", "\\\\")
-        .replaceAll("'", "\\'")
-        .replaceAll('"', '\\"');
-    }
-
-    loadSavedTheme();
-    startClock();
-    loadData();
-
-    setInterval(loadData, 30000);
+    loadDashboard();
+    setInterval(loadDashboard, 10000);
+    window.addEventListener('resize', function() {
+      if (dashboardData.records) renderDashboard();
+    });
   </script>
 </body>
 </html>
