@@ -40,7 +40,7 @@
 
     .top-header {
       display: grid;
-      grid-template-columns: 220px 1fr 300px;
+      grid-template-columns: 220px 1fr 310px;
       gap: 10px;
       margin-bottom: 10px;
     }
@@ -697,22 +697,28 @@
       const callbackName = 'coeDashboardCallback_' + Date.now();
 
       window[callbackName] = function(data) {
-        dashboardData = normalizeData(data);
-        renderDashboard();
-
-        document.getElementById('errorText').textContent = '';
-
-        delete window[callbackName];
+        if (connectionTimer) {
+          clearTimeout(connectionTimer);
+          connectionTimer = null;
+        }
 
         if (activeScript) {
           activeScript.remove();
           activeScript = null;
         }
 
-        if (connectionTimer) {
-          clearTimeout(connectionTimer);
-          connectionTimer = null;
+        delete window[callbackName];
+
+        if (!data || data.success === false) {
+          document.getElementById('updatedText').textContent = 'Connected, but no valid data received.';
+          document.getElementById('errorText').textContent = data && data.message ? data.message : 'No records returned from Apps Script.';
+          return;
         }
+
+        dashboardData = normalizeData(data);
+        renderDashboard();
+
+        document.getElementById('errorText').textContent = '';
       };
 
       activeScript = document.createElement('script');
@@ -729,12 +735,13 @@
           showConnectionError();
           delete window[callbackName];
         }
-      }, 12000);
+      }, 60000);
     }
 
     function showConnectionError() {
       document.getElementById('updatedText').textContent = 'Connection failed.';
       document.getElementById('errorText').innerHTML =
+        'Apps Script is taking too long or GitHub is still using old code.<br><br>' +
         'Test this in your browser:<br>' +
         GAS_WEB_APP_URL + '?mode=data&callback=test<br><br>' +
         'Expected result must start with: test({"success":true,...})';
@@ -743,20 +750,15 @@
         activeScript.remove();
         activeScript = null;
       }
+
+      if (connectionTimer) {
+        clearTimeout(connectionTimer);
+        connectionTimer = null;
+      }
     }
 
     function normalizeData(data) {
-      if (!data || data.success === false) {
-        return {
-          updatedAt: 'No data received',
-          kpi: {},
-          records: [],
-          resultTable: [],
-          programTable: []
-        };
-      }
-
-      const records = data.records || [];
+      const records = Array.isArray(data.records) ? data.records : [];
 
       return {
         updatedAt: data.updatedAt || new Date().toLocaleString(),
@@ -879,6 +881,7 @@
     function drawResultSummaryChart() {
       const table = dashboardData.resultTable || [];
       const rows = table.slice(1);
+
       drawDonut(
         'resultSummaryChart',
         rows.map(row => row[0]),
@@ -902,6 +905,7 @@
     function drawProgramChart() {
       const table = dashboardData.programTable || buildProgramTable(dashboardData.records);
       const rows = table.slice(1).slice(0, 6);
+
       drawLineChart(
         'programChart',
         rows.map(row => shortText(row[0], 9)),
