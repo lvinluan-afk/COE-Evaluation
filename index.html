@@ -684,77 +684,75 @@
       programTable: []
     };
 
-    let activeScript = null;
-    let connectionTimer = null;
-
     function loadDashboard() {
       document.getElementById('errorText').textContent = '';
       document.getElementById('updatedText').textContent = 'Connecting to Google Sheet...';
 
-      if (activeScript) activeScript.remove();
-      if (connectionTimer) clearTimeout(connectionTimer);
+      tryJsonpConnection();
+    }
 
-      const callbackName = 'coeDashboardCallback_' + Date.now();
+    function tryJsonpConnection() {
+      const callbackName = 'coeDashboardCallback';
 
       window[callbackName] = function(data) {
-        if (connectionTimer) {
-          clearTimeout(connectionTimer);
-          connectionTimer = null;
-        }
-
-        if (activeScript) {
-          activeScript.remove();
-          activeScript = null;
-        }
-
-        delete window[callbackName];
-
         if (!data || data.success === false) {
-          document.getElementById('updatedText').textContent = 'Connected, but no valid data received.';
-          document.getElementById('errorText').textContent = data && data.message ? data.message : 'No records returned from Apps Script.';
+          tryCorsFallback();
           return;
         }
 
-        dashboardData = normalizeData(data);
-        renderDashboard();
-
-        document.getElementById('errorText').textContent = '';
+        applyDashboardData(data, 'Connected through JSONP');
       };
 
-      activeScript = document.createElement('script');
-      activeScript.src = GAS_WEB_APP_URL + '?mode=data&callback=' + callbackName + '&t=' + Date.now();
+      const script = document.createElement('script');
+      script.src = GAS_WEB_APP_URL + '?mode=data&callback=' + callbackName + '&t=' + Date.now();
 
-      activeScript.onerror = function() {
-        showConnectionError();
+      script.onerror = function() {
+        tryCorsFallback();
       };
 
-      document.body.appendChild(activeScript);
+      document.body.appendChild(script);
 
-      connectionTimer = setTimeout(function() {
-        if (typeof window[callbackName] === 'function') {
-          showConnectionError();
-          delete window[callbackName];
+      setTimeout(function() {
+        if (!dashboardData.records || dashboardData.records.length === 0) {
+          tryCorsFallback();
         }
-      }, 60000);
+        script.remove();
+      }, 8000);
     }
 
-    function showConnectionError() {
-      document.getElementById('updatedText').textContent = 'Connection failed.';
-      document.getElementById('errorText').innerHTML =
-        'Apps Script is taking too long or GitHub is still using old code.<br><br>' +
-        'Test this in your browser:<br>' +
-        GAS_WEB_APP_URL + '?mode=data&callback=test<br><br>' +
-        'Expected result must start with: test({"success":true,...})';
+    async function tryCorsFallback() {
+      document.getElementById('updatedText').textContent = 'Trying fallback connection...';
 
-      if (activeScript) {
-        activeScript.remove();
-        activeScript = null;
-      }
+      const targetUrl = GAS_WEB_APP_URL + '?mode=data&t=' + Date.now();
+      const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(targetUrl);
 
-      if (connectionTimer) {
-        clearTimeout(connectionTimer);
-        connectionTimer = null;
+      try {
+        const response = await fetch(proxyUrl);
+        const text = await response.text();
+        const data = JSON.parse(text);
+
+        if (!data || data.success === false) {
+          throw new Error(data && data.message ? data.message : 'No valid data returned.');
+        }
+
+        applyDashboardData(data, 'Connected through fallback');
+      } catch (error) {
+        document.getElementById('updatedText').textContent = 'Connection failed.';
+        document.getElementById('errorText').innerHTML =
+          'Apps Script test works, but GitHub cannot load the data automatically.<br><br>' +
+          'Open this test link:<br>' +
+          GAS_WEB_APP_URL + '?mode=data&callback=test<br><br>' +
+          'If it starts with test({"success":true,...}), Apps Script is okay.';
       }
+    }
+
+    function applyDashboardData(data, connectionLabel) {
+      dashboardData = normalizeData(data);
+      renderDashboard();
+
+      document.getElementById('errorText').textContent = '';
+      document.getElementById('updatedText').textContent =
+        connectionLabel + ' | Last Updated: ' + dashboardData.updatedAt;
     }
 
     function normalizeData(data) {
@@ -785,11 +783,9 @@
       const pendingPct = getPercent(pending, total);
       const evaluatedPct = getPercent(evaluated, total);
 
-      document.getElementById('updatedText').textContent = 'Last Updated: ' + dashboardData.updatedAt;
-
       document.getElementById('totalApplications').textContent = total.toLocaleString();
       document.getElementById('averageScore').textContent = avg.toFixed(2);
-      document.getElementById('passingScore').textContent = '60';
+      document.getElementById('passingScore').textContent = kpi.passingScore || '60';
       document.getElementById('forDeliberationSmall').textContent = delib;
 
       document.getElementById('qualifiedPercentText').textContent = passedPct.toFixed(0);
@@ -879,14 +875,8 @@
     }
 
     function drawResultSummaryChart() {
-      const table = dashboardData.resultTable || [];
-      const rows = table.slice(1);
-
-      drawDonut(
-        'resultSummaryChart',
-        rows.map(row => row[0]),
-        rows.map(row => Number(row[1]) || 0)
-      );
+      const rows = (dashboardData.resultTable || []).slice(1);
+      drawDonut('resultSummaryChart', rows.map(row => row[0]), rows.map(row => Number(row[1]) || 0));
     }
 
     function drawBreakdownChart() {
@@ -905,12 +895,7 @@
     function drawProgramChart() {
       const table = dashboardData.programTable || buildProgramTable(dashboardData.records);
       const rows = table.slice(1).slice(0, 6);
-
-      drawLineChart(
-        'programChart',
-        rows.map(row => shortText(row[0], 9)),
-        rows.map(row => Number(row[1]) || 0)
-      );
+      drawLineChart('programChart', rows.map(row => shortText(row[0], 9)), rows.map(row => Number(row[1]) || 0));
     }
 
     function drawAreaChart() {
@@ -941,14 +926,12 @@
 
       values.forEach((value, index) => {
         const angle = (value / total) * Math.PI * 2;
-
         ctx.beginPath();
         ctx.moveTo(cx, cy);
         ctx.arc(cx, cy, radius, start, start + angle);
         ctx.closePath();
         ctx.fillStyle = colors[index % colors.length];
         ctx.fill();
-
         start += angle;
       });
 
@@ -995,7 +978,6 @@
       segments.forEach(segment => {
         const h = total ? (segment.value / total) * barH : 0;
         currentY -= h;
-
         ctx.fillStyle = segment.color;
         ctx.fillRect(barX, currentY, barW, h);
       });
@@ -1008,19 +990,12 @@
       segments.forEach(segment => {
         ctx.fillStyle = segment.color;
         ctx.fillRect(width - 140, legendY - 10, 12, 12);
-
         ctx.fillStyle = '#ffffff';
         ctx.font = '12px Arial';
         ctx.textAlign = 'left';
         ctx.fillText(segment.label, width - 122, legendY);
-
         legendY += 25;
       });
-
-      ctx.fillStyle = '#ffffff';
-      ctx.font = '12px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText('Evaluation Result', barX + barW / 2, height - 15);
     }
 
     function drawLineChart(canvasId, labels, values) {
@@ -1050,21 +1025,6 @@
       });
 
       ctx.stroke();
-
-      points.forEach((point, index) => {
-        ctx.beginPath();
-        ctx.arc(point.x, point.y, 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#28bdf5';
-        ctx.fill();
-
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '11px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText(point.value, point.x, point.y - 10);
-
-        ctx.fillStyle = '#ffffff';
-        ctx.fillText(labels[index], point.x, height - 8);
-      });
     }
 
     function drawArea(canvasId, labels, values) {
@@ -1089,7 +1049,6 @@
       gradient.addColorStop(1, 'rgba(40,189,245,0.18)');
 
       ctx.beginPath();
-
       points.forEach((point, index) => {
         if (index === 0) ctx.moveTo(point.x, point.y);
         else ctx.lineTo(point.x, point.y);
@@ -1100,24 +1059,6 @@
       ctx.closePath();
       ctx.fillStyle = gradient;
       ctx.fill();
-
-      ctx.strokeStyle = '#28bdf5';
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-
-      points.forEach((point, index) => {
-        if (index === 0) ctx.moveTo(point.x, point.y);
-        else ctx.lineTo(point.x, point.y);
-      });
-
-      ctx.stroke();
-
-      points.forEach((point, index) => {
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '11px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText(labels[index], point.x, height - 8);
-      });
     }
 
     function setupCanvas(canvas) {
@@ -1148,30 +1089,20 @@
 
     function buildResultTable(records) {
       const map = {};
-
       records.forEach(record => {
         const key = record.evaluationResult || 'Pending Evaluation';
         map[key] = (map[key] || 0) + 1;
       });
-
-      return [['Evaluation Result', 'Count']].concat(
-        Object.keys(map).map(key => [key, map[key]])
-      );
+      return [['Evaluation Result', 'Count']].concat(Object.keys(map).map(key => [key, map[key]]));
     }
 
     function buildProgramTable(records) {
       const map = {};
-
       records.forEach(record => {
         const key = record.program || 'No Program';
         map[key] = (map[key] || 0) + 1;
       });
-
-      return [['Program', 'Applications']].concat(
-        Object.keys(map)
-          .sort((a, b) => map[b] - map[a])
-          .map(key => [key, map[key]])
-      );
+      return [['Program', 'Applications']].concat(Object.keys(map).sort((a,b) => map[b] - map[a]).map(key => [key, map[key]]));
     }
 
     function countResult(result) {
@@ -1179,13 +1110,9 @@
     }
 
     function averageScore(records) {
-      const scores = records
-        .map(record => Number(record.score))
-        .filter(score => !isNaN(score) && score > 0);
-
+      const scores = records.map(record => Number(record.score)).filter(score => !isNaN(score) && score > 0);
       if (!scores.length) return 0;
-
-      return scores.reduce((a, b) => a + b, 0) / scores.length;
+      return scores.reduce((a,b) => a + b, 0) / scores.length;
     }
 
     function getPercent(value, total) {
@@ -1196,40 +1123,24 @@
     function ratingPill(value) {
       const text = String(value || 'Pending');
       let cls = 'pending';
-
-      if (
-        text.includes('Excellent') ||
-        text.includes('Very Satisfactory') ||
-        text.includes('Satisfactory') ||
-        text === 'Passed'
-      ) {
-        cls = 'pass';
-      }
-
-      if (text.includes('Below')) {
-        cls = 'delib';
-      }
-
+      if (text.includes('Excellent') || text.includes('Very Satisfactory') || text.includes('Satisfactory') || text === 'Passed') cls = 'pass';
+      if (text.includes('Below')) cls = 'delib';
       return `<span class="pill ${cls}">${escapeHtml(text)}</span>`;
     }
 
     function decisionPill(value) {
       const text = String(value || 'Pending Evaluation');
       let cls = 'pending';
-
       if (text === 'Passed') cls = 'pass';
       if (text === 'For Deliberation') cls = 'delib';
-
       return `<span class="pill ${cls}">${escapeHtml(text)}</span>`;
     }
 
     function resultPill(value) {
       const text = String(value || 'Pending Evaluation');
       let cls = 'pending';
-
       if (text === 'QUALIFIED / PASSED') cls = 'pass';
       if (text === 'FOR DELIBERATION') cls = 'delib';
-
       return `<span class="pill ${cls}">${escapeHtml(text)}</span>`;
     }
 
@@ -1240,21 +1151,15 @@
 
     function escapeHtml(value) {
       return String(value ?? '')
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;')
-        .replaceAll("'", '&#039;');
+        .replaceAll('&','&amp;')
+        .replaceAll('<','&lt;')
+        .replaceAll('>','&gt;')
+        .replaceAll('"','&quot;')
+        .replaceAll("'","&#039;");
     }
 
     loadDashboard();
     setInterval(loadDashboard, 10000);
-
-    window.addEventListener('resize', function() {
-      if (dashboardData.records) {
-        renderDashboard();
-      }
-    });
   </script>
 </body>
 </html>
