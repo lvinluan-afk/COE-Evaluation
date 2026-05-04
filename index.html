@@ -1234,7 +1234,7 @@
      * GITHUB SETUP
      * Replace this with your deployed Apps Script Web App /exec URL.
      ************************************************************/
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby0JjtDDj3Wm7BjTRoW6-BaUriPObhjBRuD7wiZJql0vDeBe5ERPImONdzBSch_JNhAVg/exec';
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwOSIkZboo99nY3eYtn3lhkOk4m_SBpkneq4W3Wuy10QEKBY_YKSgheo-gMFLwhFa3zSA/exec';
 
     const CHED_LOGO_URL = './images/ched-logo.png';
     const BP_LOGO_URL = './images/bagong-pilipinas-logo.png';
@@ -1419,11 +1419,81 @@
   errorText.textContent = '';
   updatedText.textContent = 'Loading data...';
 
-  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('PASTE_YOUR_APPS_SCRIPT')) {
-    updatedText.textContent = 'Apps Script URL missing.';
-    errorText.textContent = 'Paste your deployed Apps Script /exec URL in APPS_SCRIPT_URL.';
-    return;
+  const callbackName =
+    'coeDashboardCallback_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+
+  let completed = false;
+
+  window[callbackName] = function(data) {
+    completed = true;
+
+    try {
+      if (!data || data.success === false) {
+        updatedText.textContent = 'Connected, but no valid data received.';
+        errorText.textContent = data && data.message ? data.message : 'No records returned.';
+        return;
+      }
+
+      dashboardData = normalizeData(data);
+      disciplinePage = 1;
+      renderDashboard();
+
+      updatedText.textContent = dashboardData.updatedAt || new Date().toLocaleString();
+      errorText.textContent = '';
+
+    } catch (err) {
+      updatedText.textContent = 'Data loaded with error.';
+      errorText.textContent = err.message || String(err);
+
+    } finally {
+      cleanupJSONP(callbackName);
+    }
+  };
+
+  const script = document.createElement('script');
+  script.id = callbackName;
+  script.src =
+    APPS_SCRIPT_URL +
+    '?mode=data&callback=' +
+    encodeURIComponent(callbackName) +
+    '&v=' +
+    Date.now();
+
+  console.log('Loading Apps Script:', script.src);
+
+  script.onerror = function() {
+    if (completed) return;
+
+    updatedText.textContent = 'Connection failed.';
+    errorText.textContent =
+      'Apps Script did not load. Check deployment access or JSONP callback.';
+
+    cleanupJSONP(callbackName);
+  };
+
+  document.body.appendChild(script);
+
+  setTimeout(function() {
+    if (completed) return;
+
+    updatedText.textContent = 'Connection timeout.';
+    errorText.textContent =
+      'Apps Script did not return JSONP. Test your URL with ?mode=data&callback=testCallback.';
+
+    cleanupJSONP(callbackName);
+  }, 15000);
+}
+
+function cleanupJSONP(callbackName) {
+  const script = document.getElementById(callbackName);
+  if (script) script.remove();
+
+  try {
+    delete window[callbackName];
+  } catch (e) {
+    window[callbackName] = undefined;
   }
+}
 
   loadDashboardJSONP();
 }
