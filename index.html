@@ -1335,93 +1335,117 @@
     }
 
     function loadDashboard() {
-      const updatedText = document.getElementById('updatedText');
-      const errorText = document.getElementById('errorText');
+  const updatedText = document.getElementById('updatedText');
+  const errorText = document.getElementById('errorText');
 
-      if (updatedText) updatedText.textContent = 'Loading data...';
-      if (errorText) errorText.textContent = '';
+  if (updatedText) updatedText.textContent = 'Loading data...';
+  if (errorText) errorText.textContent = '';
 
-      const callbackName =
-        'coeDashboardCallback_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('PASTE_')) {
+    if (updatedText) updatedText.textContent = 'Apps Script URL missing.';
+    if (errorText) errorText.textContent = 'Paste the new Apps Script /exec URL in APPS_SCRIPT_URL.';
+    return;
+  }
 
-      let completed = false;
+  const callbackName =
+    'coeDashboardCallback_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
 
-      window[callbackName] = function(data) {
-        completed = true;
+  let completed = false;
 
-        try {
-          if (!data || data.success === false) {
-            if (updatedText) updatedText.textContent = 'Connected, but no valid data.';
-            if (errorText) errorText.textContent = data && data.message ? data.message : 'No data returned.';
-            return;
-          }
+  window[callbackName] = function(data) {
+    completed = true;
 
-          dashboardData = normalizeData(data);
-          disciplinePage = 1;
-          renderDashboard();
+    try {
+      if (!data || data.success === false) {
+        if (updatedText) updatedText.textContent = 'Connected, but no valid data.';
+        if (errorText) errorText.textContent = data && data.message ? data.message : 'No data returned.';
+        return;
+      }
 
-          if (updatedText) {
-            updatedText.textContent = dashboardData.updatedAt || new Date().toLocaleString();
-          }
+      console.log('COE GitHub data loaded:', {
+        totalApplications: data.kpi && data.kpi.totalApplications,
+        githubSyncVersion: data.githubSyncVersion,
+        generatedAt: data.generatedAt
+      });
 
-          if (errorText) errorText.textContent = '';
+      dashboardData = normalizeData(data);
+      disciplinePage = 1;
+      renderDashboard();
 
-        } catch (err) {
-          console.error('Render error:', err);
-          if (updatedText) updatedText.textContent = 'Data loaded but render failed.';
-          if (errorText) errorText.textContent = err.message || String(err);
+      if (updatedText) {
+        updatedText.textContent =
+          data.updatedAt ||
+          data.generatedAt ||
+          dashboardData.updatedAt ||
+          new Date().toLocaleString();
+      }
 
-        } finally {
-          cleanupJSONP(callbackName);
-        }
-      };
+      if (errorText) {
+        errorText.textContent =
+          data.githubSyncVersion ? data.githubSyncVersion : '';
+      }
 
-      const script = document.createElement('script');
-      script.id = callbackName;
-      script.src =
-        APPS_SCRIPT_URL +
-        '?mode=data&callback=' +
-        encodeURIComponent(callbackName) +
-        '&v=' +
-        Date.now();
+    } catch (err) {
+      console.error('Dashboard render error:', err);
 
-      script.onerror = function() {
-        if (completed) return;
+      if (updatedText) updatedText.textContent = 'Data loaded but render failed.';
+      if (errorText) errorText.textContent = err.message || String(err);
 
-        if (updatedText) updatedText.textContent = 'Connection failed.';
-        if (errorText) {
-          errorText.textContent =
-            'Unable to load Apps Script data. Check deployment access and Code.gs doGet.';
-        }
-
-        cleanupJSONP(callbackName);
-      };
-
-      document.body.appendChild(script);
-
-      setTimeout(function() {
-        if (completed) return;
-
-        if (updatedText) updatedText.textContent = 'Connection timeout.';
-        if (errorText) {
-          errorText.textContent =
-            'Apps Script did not return data. Redeploy Code.gs as new version.';
-        }
-
-        cleanupJSONP(callbackName);
-      }, 30000);
+    } finally {
+      cleanupJSONP(callbackName);
     }
+  };
+
+  const script = document.createElement('script');
+  script.id = callbackName;
+
+  script.src =
+    APPS_SCRIPT_URL +
+    '?mode=data&callback=' +
+    encodeURIComponent(callbackName) +
+    '&cacheBust=' +
+    Date.now() +
+    '&githubSyncVersion=COE_GITHUB_SYNC_2026_05_04_FINAL';
+
+  console.log('Loading latest Apps Script data:', script.src);
+
+  script.onerror = function() {
+    if (completed) return;
+
+    if (updatedText) updatedText.textContent = 'Connection failed.';
+    if (errorText) {
+      errorText.textContent =
+        'Unable to load latest Apps Script data. Use the newest deployed /exec URL.';
+    }
+
+    cleanupJSONP(callbackName);
+  };
+
+  document.body.appendChild(script);
+
+  setTimeout(function() {
+    if (completed) return;
+
+    if (updatedText) updatedText.textContent = 'Connection timeout.';
+    if (errorText) {
+      errorText.textContent =
+        'Apps Script did not return latest data. Redeploy Code.gs as New version and update APPS_SCRIPT_URL.';
+    }
+
+    cleanupJSONP(callbackName);
+  }, 30000);
+}
 
     function cleanupJSONP(callbackName) {
-      const script = document.getElementById(callbackName);
-      if (script) script.remove();
+  const script = document.getElementById(callbackName);
+  if (script) script.remove();
 
-      try {
-        delete window[callbackName];
-      } catch (e) {
-        window[callbackName] = undefined;
-      }
-    }
+  try {
+    delete window[callbackName];
+  } catch (e) {
+    window[callbackName] = undefined;
+  }
+}
 
     function normalizeData(data) {
       const rawRecords = Array.isArray(data.records) ? data.records : [];
