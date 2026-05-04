@@ -1437,9 +1437,15 @@
   </div>
 
   <script>
-    const CHED_LOGO_URL = 'https://drive.google.com/thumbnail?id=12eGD35nc4o7Fpns98RN1bK6vbntkK2Kx&sz=w1000';
-    const BP_LOGO_URL = 'https://drive.google.com/thumbnail?id=1fvOc1FeS58MjU0msBv4nfvMyRMnyHFUX&sz=w1000';
-    const ACHIEVE_LOGO_URL = '1HgPFh_4om46RUitwmtFpjmWcjnnBpfJu';
+    const CHED_LOGO_URL = './images/ched-logo.png';
+const BP_LOGO_URL = './images/bagong-pilipinas-logo.png';
+const ACHIEVE_LOGO_URL = './images/achieve-logo.png';
+
+function loadPublicLogos() {
+  document.getElementById('chedLogoPreview').src = CHED_LOGO_URL;
+  document.getElementById('bpLogoPreview').src = BP_LOGO_URL;
+  document.getElementById('achieveLogoPreview').src = ACHIEVE_LOGO_URL;
+}
 
     const REGION_ORDER = [
       'I','II','III','IV-A','V','VI','VII','VIII','IX','X','XI','XII',
