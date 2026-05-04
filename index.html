@@ -1412,25 +1412,66 @@
       }
     }
 
-    function loadDashboard() {
+   function loadDashboard() {
   const errorText = document.getElementById('errorText');
   const updatedText = document.getElementById('updatedText');
 
   errorText.textContent = '';
   updatedText.textContent = 'Loading data...';
 
-  const callbackName =
-    'coeDashboardCallback_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('PASTE_YOUR_APPS_SCRIPT')) {
+    updatedText.textContent = 'Apps Script URL missing.';
+    errorText.textContent = 'Paste your deployed Apps Script /exec URL in APPS_SCRIPT_URL.';
+    return;
+  }
+
+  loadDashboardViaBridge();
+}
+
+function loadDashboardViaBridge() {
+  const errorText = document.getElementById('errorText');
+  const updatedText = document.getElementById('updatedText');
+
+  const requestId =
+    'coe_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
 
   let completed = false;
 
-  window[callbackName] = function(data) {
+  const iframe = document.createElement('iframe');
+  iframe.id = requestId;
+  iframe.style.display = 'none';
+
+  const bridgeUrl =
+    APPS_SCRIPT_URL +
+    '?mode=bridge&requestId=' +
+    encodeURIComponent(requestId) +
+    '&v=' +
+    Date.now();
+
+  console.log('Loading Apps Script bridge:', bridgeUrl);
+
+  function cleanup() {
+    window.removeEventListener('message', receiveMessage);
+
+    const oldFrame = document.getElementById(requestId);
+    if (oldFrame) oldFrame.remove();
+  }
+
+  function receiveMessage(event) {
+    const message = event.data;
+
+    if (!message || message.type !== 'COE_DASHBOARD_DATA') return;
+    if (message.requestId !== requestId) return;
+
     completed = true;
 
     try {
+      const data = message.data;
+
       if (!data || data.success === false) {
         updatedText.textContent = 'Connected, but no valid data received.';
-        errorText.textContent = data && data.message ? data.message : 'No records returned.';
+        errorText.textContent =
+          data && data.message ? data.message : 'No records returned.';
         return;
       }
 
@@ -1438,7 +1479,9 @@
       disciplinePage = 1;
       renderDashboard();
 
-      updatedText.textContent = dashboardData.updatedAt || new Date().toLocaleString();
+      updatedText.textContent =
+        dashboardData.updatedAt || new Date().toLocaleString();
+
       errorText.textContent = '';
 
     } catch (err) {
@@ -1446,8 +1489,35 @@
       errorText.textContent = err.message || String(err);
 
     } finally {
-      cleanupJSONP(callbackName);
+      cleanup();
     }
+  }
+
+  window.addEventListener('message', receiveMessage);
+
+  iframe.onerror = function() {
+    if (completed) return;
+
+    updatedText.textContent = 'Connection failed.';
+    errorText.textContent =
+      'Apps Script bridge failed to load. Check deployment access.';
+
+    cleanup();
+  };
+
+  iframe.src = bridgeUrl;
+  document.body.appendChild(iframe);
+
+  setTimeout(function() {
+    if (completed) return;
+
+    updatedText.textContent = 'Connection timeout.';
+    errorText.textContent =
+      'Apps Script bridge did not return data. Check deployment access and getDashboardData runtime.';
+
+    cleanup();
+  }, 60000);
+}
   };
 
   const script = document.createElement('script');
