@@ -1341,6 +1341,12 @@
   if (updatedText) updatedText.textContent = 'Loading data...';
   if (errorText) errorText.textContent = '';
 
+  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('PASTE_')) {
+    if (updatedText) updatedText.textContent = 'Apps Script URL missing.';
+    if (errorText) errorText.textContent = 'Paste the correct Apps Script /exec URL.';
+    return;
+  }
+
   const callbackName =
     'coeDashboardCallback_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
 
@@ -1372,6 +1378,7 @@
 
     } catch (err) {
       console.error('Render error:', err);
+
       if (updatedText) updatedText.textContent = 'Data loaded but render failed.';
       if (errorText) errorText.textContent = err.message || String(err);
 
@@ -1382,6 +1389,7 @@
 
   const script = document.createElement('script');
   script.id = callbackName;
+
   script.src =
     APPS_SCRIPT_URL +
     '?mode=data&callback=' +
@@ -1395,7 +1403,7 @@
     if (updatedText) updatedText.textContent = 'Connection failed.';
     if (errorText) {
       errorText.textContent =
-        'Apps Script did not return valid JSONP. Redeploy Code.gs as New version.';
+        'Apps Script returned an error or deployment access is blocked.';
     }
 
     cleanupJSONP(callbackName);
@@ -1403,17 +1411,30 @@
 
   document.body.appendChild(script);
 
+  // Do not cancel after 30 seconds.
+  // Show waiting message only, but keep callback active.
+  setTimeout(function() {
+    if (completed) return;
+
+    if (updatedText) updatedText.textContent = 'Still loading data...';
+    if (errorText) {
+      errorText.textContent =
+        'Apps Script is still reading all spreadsheets. Please wait.';
+    }
+  }, 30000);
+
+  // Final timeout only after 3 minutes.
   setTimeout(function() {
     if (completed) return;
 
     if (updatedText) updatedText.textContent = 'Connection timeout.';
     if (errorText) {
       errorText.textContent =
-        'Apps Script did not respond. Check latest /exec deployment URL.';
+        'Apps Script took too long. Reduce source sheets or optimize getDashboardData().';
     }
 
     cleanupJSONP(callbackName);
-  }, 30000);
+  }, 180000);
 }
 
    function cleanupJSONP(callbackName) {
