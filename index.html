@@ -9,12 +9,10 @@
     :root {
       --bg:#030814;
       --card:#071936;
-      --card2:#0a2147;
       --line:#244b87;
       --text:#ffffff;
       --muted:#cbd6e8;
       --blue:#1683ff;
-      --blue2:#075bd1;
       --green:#0cc34d;
       --yellow:#ffc400;
       --red:#ff3c4f;
@@ -27,12 +25,10 @@
     body.light-mode {
       --bg:#eef4ff;
       --card:#ffffff;
-      --card2:#f6f9ff;
       --line:#bad0ef;
       --text:#12213b;
       --muted:#52637c;
       --blue:#0968dd;
-      --blue2:#0454b8;
       --green:#07933b;
       --yellow:#c89300;
       --red:#d53042;
@@ -95,8 +91,6 @@
     body.light-mode .table-card {
       background:linear-gradient(145deg, #ffffff, #f6f9ff);
     }
-
-    /* ================= HEADER ================= */
 
     .top-header {
       display:grid;
@@ -166,15 +160,11 @@
     }
 
     .logo-box {
-      min-width:0;
       width:auto;
       height:100px;
       display:flex;
       align-items:center;
       justify-content:center;
-      text-align:center;
-      padding:0;
-      border-right:none;
       flex:0 0 auto;
     }
 
@@ -374,8 +364,6 @@
       word-break:break-word;
     }
 
-    /* ================= KPI ================= */
-
     .kpi-grid {
       display:grid;
       grid-template-columns:repeat(5, 1fr);
@@ -469,8 +457,6 @@
       text-transform:uppercase;
       color:var(--text);
       margin-bottom:10px;
-      white-space:normal;
-      overflow-wrap:break-word;
       text-align:center;
       width:100%;
       min-height:36px;
@@ -512,8 +498,6 @@
       color:var(--text);
       text-align:center;
     }
-
-    /* ================= CHARTS ================= */
 
     .chart-grid {
       display:grid;
@@ -597,19 +581,6 @@
       color:#ffffff;
       box-shadow:0 0 10px rgba(22,131,255,.45);
     }
-
-    body.light-mode .discipline-page-control {
-      background:#ffffff;
-      color:#12213b;
-      border-color:#8eb8ee;
-    }
-
-    body.light-mode .discipline-page-control.active {
-      background:#0968dd;
-      color:#ffffff;
-    }
-
-    /* ================= TABLES ================= */
 
     .bottom-grid {
       display:grid;
@@ -799,7 +770,6 @@
       background:#ff354c;
     }
 
-    /* Fit live database table to screen */
     #liveDatabaseTable {
       width:100%;
       table-layout:fixed;
@@ -817,49 +787,31 @@
     }
 
     #liveDatabaseTable th:nth-child(1),
-    #liveDatabaseTable td:nth-child(1) {
-      width:4%;
-    }
+    #liveDatabaseTable td:nth-child(1) { width:4%; }
 
     #liveDatabaseTable th:nth-child(2),
-    #liveDatabaseTable td:nth-child(2) {
-      width:6%;
-    }
+    #liveDatabaseTable td:nth-child(2) { width:6%; }
 
     #liveDatabaseTable th:nth-child(3),
-    #liveDatabaseTable td:nth-child(3) {
-      width:15%;
-    }
+    #liveDatabaseTable td:nth-child(3) { width:15%; }
 
     #liveDatabaseTable th:nth-child(4),
-    #liveDatabaseTable td:nth-child(4) {
-      width:18%;
-    }
+    #liveDatabaseTable td:nth-child(4) { width:18%; }
 
     #liveDatabaseTable th:nth-child(5),
-    #liveDatabaseTable td:nth-child(5) {
-      width:20%;
-    }
+    #liveDatabaseTable td:nth-child(5) { width:20%; }
 
     #liveDatabaseTable th:nth-child(6),
-    #liveDatabaseTable td:nth-child(6) {
-      width:6%;
-    }
+    #liveDatabaseTable td:nth-child(6) { width:6%; }
 
     #liveDatabaseTable th:nth-child(7),
-    #liveDatabaseTable td:nth-child(7) {
-      width:14%;
-    }
+    #liveDatabaseTable td:nth-child(7) { width:14%; }
 
     #liveDatabaseTable th:nth-child(8),
-    #liveDatabaseTable td:nth-child(8) {
-      width:8%;
-    }
+    #liveDatabaseTable td:nth-child(8) { width:8%; }
 
     #liveDatabaseTable th:nth-child(9),
-    #liveDatabaseTable td:nth-child(9) {
-      width:9%;
-    }
+    #liveDatabaseTable td:nth-child(9) { width:9%; }
 
     #liveDatabaseTable td.left,
     #liveDatabaseTable th.left {
@@ -879,10 +831,6 @@
       padding:7px 8px;
       font-size:11px;
       line-height:1;
-    }
-
-    .database-table-wrap::-webkit-scrollbar {
-      height:0;
     }
 
     .view-all-btn {
@@ -906,93 +854,9 @@
       padding:4px;
     }
 
-    /* ================= RESPONSIVE ================= */
-
-    @media (max-width:1500px) {
-      .top-header {
-        grid-template-columns:minmax(0, 1fr) 270px;
-      }
-
-      .hero-header {
-        grid-template-columns:36% 1px 1fr;
-        gap:22px;
-        padding:18px 22px;
-      }
-
-      h1 {
-        font-size:42px;
-      }
-
-      .main-subtitle {
-        font-size:16px;
-      }
-
-      .asof {
-        font-size:14px;
-      }
-
-      .logo-img {
-        width:76px;
-        height:76px;
-      }
-
-      .bp-logo,
-      .achieve-logo {
-        width:84px;
-        height:84px;
-      }
-
-      .logo-box {
-        height:88px;
-      }
-
-      .live-title {
-        font-size:28px;
-      }
-
-      .live-sub,
-      .live-label,
-      .live-time {
-        font-size:13px;
-      }
-
-      .kpi-card {
-        padding:16px 16px;
-        grid-template-columns:64px 1fr;
-        gap:12px;
-      }
-
-      .kpi-icon {
-        width:60px;
-        height:60px;
-        font-size:31px;
-      }
-
-      .kpi-title {
-        font-size:13px;
-        min-height:32px;
-      }
-
-      .kpi-number {
-        font-size:39px;
-      }
-
-      .kpi-note {
-        font-size:13px;
-      }
-
-      .database-controls {
-        grid-template-columns:1.2fr .8fr .8fr .9fr 130px;
-      }
-    }
-
     @media (max-width:1200px) {
       .top-header {
         grid-template-columns:1fr;
-      }
-
-      .live-panel {
-        min-height:145px;
       }
 
       .database-controls {
@@ -1025,14 +889,6 @@
 
       h1 {
         font-size:38px;
-      }
-
-      .main-subtitle {
-        font-size:18px;
-      }
-
-      .asof {
-        font-size:15px;
       }
 
       .kpi-grid {
@@ -1104,11 +960,6 @@
         font-size:12px;
       }
 
-      .title-line {
-        margin:8px auto;
-        width:80%;
-      }
-
       .theme-toggle {
         top:10px;
         right:10px;
@@ -1125,12 +976,6 @@
 
       .live-title {
         font-size:22px;
-      }
-
-      .live-sub,
-      .live-label,
-      .live-time {
-        font-size:12px;
       }
 
       .kpi-grid {
@@ -1178,15 +1023,6 @@
         font-size:15px;
       }
 
-      .discipline-page-control {
-        font-size:11px;
-        padding:5px 9px;
-      }
-
-      .database-title-bar .section-title {
-        font-size:16px;
-      }
-
       .database-controls {
         grid-template-columns:1fr;
         gap:8px;
@@ -1200,15 +1036,6 @@
         font-size:12px;
       }
 
-      table {
-        font-size:11px;
-      }
-
-      th,
-      td {
-        padding:7px 8px;
-      }
-
       .database-table-wrap {
         overflow-x:auto;
       }
@@ -1219,42 +1046,8 @@
         font-size:11px;
       }
 
-      #liveDatabaseTable th,
-      #liveDatabaseTable td {
-        padding:8px 8px;
-      }
-
       .view-all-btn {
         font-size:14px;
-      }
-    }
-
-    @media (max-width:420px) {
-      .logo-img {
-        width:48px;
-        height:48px;
-      }
-
-      .bp-logo,
-      .achieve-logo {
-        width:56px;
-        height:56px;
-      }
-
-      h1 {
-        font-size:24px;
-      }
-
-      .main-subtitle {
-        font-size:12px;
-      }
-
-      .asof {
-        font-size:10.5px;
-      }
-
-      .hero-title-area {
-        padding:0 28px;
       }
     }
   </style>
@@ -1437,15 +1230,15 @@
   </div>
 
   <script>
-    const CHED_LOGO_URL = 'ched-logo.png';
-const BP_LOGO_URL = 'bagong-pilipinas-logo.png';
-const ACHIEVE_LOGO_URL = 'achieve-logo.png';
+    /************************************************************
+     * GITHUB SETUP
+     * Replace this with your deployed Apps Script Web App /exec URL.
+     ************************************************************/
+    const APPS_SCRIPT_URL = 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
 
-function loadPublicLogos() {
-  document.getElementById('chedLogoPreview').src = CHED_LOGO_URL;
-  document.getElementById('bpLogoPreview').src = BP_LOGO_URL;
-  document.getElementById('achieveLogoPreview').src = ACHIEVE_LOGO_URL;
-}
+    const CHED_LOGO_URL = './images/ched-logo.png';
+    const BP_LOGO_URL = './images/bagong-pilipinas-logo.png';
+    const ACHIEVE_LOGO_URL = './images/achieve-logo.png';
 
     const REGION_ORDER = [
       'I','II','III','IV-A','V','VI','VII','VIII','IX','X','XI','XII',
@@ -1466,17 +1259,10 @@ function loadPublicLogos() {
       kpi: {}
     };
 
-    function buildDriveImageUrl(input) {
-      if (!input) return '';
-      const value = String(input).trim();
-      if (value.includes('http://') || value.includes('https://')) return value;
-      return 'https://drive.google.com/thumbnail?id=' + value + '&sz=w1000';
-    }
-
     function loadPublicLogos() {
-      document.getElementById('chedLogoPreview').src = buildDriveImageUrl(CHED_LOGO_URL);
-      document.getElementById('bpLogoPreview').src = buildDriveImageUrl(BP_LOGO_URL);
-      document.getElementById('achieveLogoPreview').src = buildDriveImageUrl(ACHIEVE_LOGO_URL);
+      document.getElementById('chedLogoPreview').src = CHED_LOGO_URL;
+      document.getElementById('bpLogoPreview').src = BP_LOGO_URL;
+      document.getElementById('achieveLogoPreview').src = ACHIEVE_LOGO_URL;
     }
 
     function normalizeResult(value) {
@@ -1564,14 +1350,10 @@ function loadPublicLogos() {
 
     function getSortableDateValue(record) {
       const text = String(record.dateEvaluated || '').trim();
-
       if (!text || text === '-') return 0;
 
       const parsed = new Date(text);
-
-      if (!isNaN(parsed.getTime())) {
-        return parsed.getTime();
-      }
+      if (!isNaN(parsed.getTime())) return parsed.getTime();
 
       return 0;
     }
@@ -1634,13 +1416,17 @@ function loadPublicLogos() {
       document.getElementById('errorText').textContent = '';
       document.getElementById('updatedText').textContent = 'Loading data...';
 
-      if (!(window.google && google.script && google.script.run)) {
-        document.getElementById('updatedText').textContent = 'Apps Script environment not detected.';
+      if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
+        document.getElementById('updatedText').textContent = 'Apps Script URL missing.';
+        document.getElementById('errorText').textContent =
+          'Please paste your deployed Apps Script /exec URL in APPS_SCRIPT_URL.';
         return;
       }
 
-      google.script.run
-        .withSuccessHandler(function(data) {
+      const callbackName = 'coeDashboardCallback_' + Date.now();
+
+      window[callbackName] = function(data) {
+        try {
           if (!data || data.success === false) {
             document.getElementById('updatedText').textContent = 'Connected, but no valid data received.';
             document.getElementById('errorText').textContent =
@@ -1656,13 +1442,32 @@ function loadPublicLogos() {
             dashboardData.updatedAt || new Date().toLocaleString();
 
           document.getElementById('errorText').textContent = '';
-        })
-        .withFailureHandler(function(error) {
-          document.getElementById('updatedText').textContent = 'Connection failed.';
-          document.getElementById('errorText').textContent =
-            error && error.message ? error.message : 'Unable to load data from Apps Script.';
-        })
-        .getDashboardData();
+        } catch (err) {
+          document.getElementById('updatedText').textContent = 'Data loaded with error.';
+          document.getElementById('errorText').textContent = err.message || String(err);
+        } finally {
+          delete window[callbackName];
+          const oldScript = document.getElementById(callbackName);
+          if (oldScript) oldScript.remove();
+        }
+      };
+
+      const script = document.createElement('script');
+      script.id = callbackName;
+      script.src = APPS_SCRIPT_URL + '?mode=data&callback=' + callbackName + '&v=' + Date.now();
+
+      script.onerror = function() {
+        document.getElementById('updatedText').textContent = 'Connection failed.';
+        document.getElementById('errorText').textContent =
+          'Unable to load data from Apps Script URL. Check deployment access.';
+
+        delete window[callbackName];
+
+        const oldScript = document.getElementById(callbackName);
+        if (oldScript) oldScript.remove();
+      };
+
+      document.body.appendChild(script);
     }
 
     function normalizeData(data) {
@@ -1981,8 +1786,6 @@ function loadPublicLogos() {
         showAllApplications ? 'Show Recent Evaluated Applications ↑' : 'View All Applications ›';
 
       document.getElementById('showingCount').textContent = fmt(records.length);
-
-      /* IMPORTANT: This keeps filtered total as ALL DATA, not only evaluated records */
       document.getElementById('filteredCount').textContent = fmt(filteredRecords.length);
     }
 
@@ -2405,27 +2208,6 @@ function loadPublicLogos() {
       ctx.closePath();
       ctx.fillStyle = fillStyle;
       ctx.fill();
-    }
-
-    function wrapText(ctx, text, x, y, maxWidth, lineHeight, align) {
-      const words = String(text || '').split(' ');
-      let line = '';
-
-      ctx.textAlign = align || 'left';
-
-      for (let n = 0; n < words.length; n++) {
-        const test = line + words[n] + ' ';
-
-        if (ctx.measureText(test).width > maxWidth && n > 0) {
-          ctx.fillText(line.trim(), x, y);
-          line = words[n] + ' ';
-          y += lineHeight;
-        } else {
-          line = test;
-        }
-      }
-
-      ctx.fillText(line.trim(), x, y);
     }
 
     applySavedTheme();
