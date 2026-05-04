@@ -362,6 +362,7 @@
       font-size:11px;
       line-height:1.25;
       word-break:break-word;
+      max-width:260px;
     }
 
     .kpi-grid {
@@ -1230,10 +1231,6 @@
   </div>
 
   <script>
-    /************************************************************
-     * GITHUB SETUP
-     * Replace this with your deployed Apps Script Web App /exec URL.
-     ************************************************************/
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwOSIkZboo99nY3eYtn3lhkOk4m_SBpkneq4W3Wuy10QEKBY_YKSgheo-gMFLwhFa3zSA/exec';
 
     const CHED_LOGO_URL = './images/ched-logo.png';
@@ -1412,249 +1409,44 @@
       }
     }
 
-   function loadDashboard() {
-  const errorText = document.getElementById('errorText');
-  const updatedText = document.getElementById('updatedText');
+    function loadDashboard() {
+      const errorText = document.getElementById('errorText');
+      const updatedText = document.getElementById('updatedText');
 
-  errorText.textContent = '';
-  updatedText.textContent = 'Loading data...';
+      if (!errorText || !updatedText) return;
 
-  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('PASTE_YOUR_APPS_SCRIPT')) {
-    updatedText.textContent = 'Apps Script URL missing.';
-    errorText.textContent = 'Paste your deployed Apps Script /exec URL in APPS_SCRIPT_URL.';
-    return;
-  }
+      errorText.textContent = '';
+      updatedText.textContent = 'Loading data...';
 
-  loadDashboardViaBridge();
-}
-
-function loadDashboardViaBridge() {
-  const errorText = document.getElementById('errorText');
-  const updatedText = document.getElementById('updatedText');
-
-  const requestId =
-    'coe_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
-
-  let completed = false;
-
-  const iframe = document.createElement('iframe');
-  iframe.id = requestId;
-  iframe.style.display = 'none';
-
-  const bridgeUrl =
-    APPS_SCRIPT_URL +
-    '?mode=bridge&requestId=' +
-    encodeURIComponent(requestId) +
-    '&v=' +
-    Date.now();
-
-  console.log('Loading Apps Script bridge:', bridgeUrl);
-
-  function cleanup() {
-    window.removeEventListener('message', receiveMessage);
-
-    const oldFrame = document.getElementById(requestId);
-    if (oldFrame) oldFrame.remove();
-  }
-
-  function receiveMessage(event) {
-    const message = event.data;
-
-    if (!message || message.type !== 'COE_DASHBOARD_DATA') return;
-    if (message.requestId !== requestId) return;
-
-    completed = true;
-
-    try {
-      const data = message.data;
-
-      if (!data || data.success === false) {
-        updatedText.textContent = 'Connected, but no valid data received.';
-        errorText.textContent =
-          data && data.message ? data.message : 'No records returned.';
+      if (!APPS_SCRIPT_URL) {
+        updatedText.textContent = 'Apps Script URL missing.';
+        errorText.textContent = 'APPS_SCRIPT_URL is empty.';
         return;
       }
 
-      dashboardData = normalizeData(data);
-      disciplinePage = 1;
-      renderDashboard();
+      const requestId = 'coe_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+      let completed = false;
 
-      updatedText.textContent =
-        dashboardData.updatedAt || new Date().toLocaleString();
-
-      errorText.textContent = '';
-
-    } catch (err) {
-      updatedText.textContent = 'Data loaded with error.';
-      errorText.textContent = err.message || String(err);
-
-    } finally {
-      cleanup();
-    }
-  }
-
-  window.addEventListener('message', receiveMessage);
-
-  iframe.onerror = function() {
-    if (completed) return;
-
-    updatedText.textContent = 'Connection failed.';
-    errorText.textContent =
-      'Apps Script bridge failed to load. Check deployment access.';
-
-    cleanup();
-  };
-
-  iframe.src = bridgeUrl;
-  document.body.appendChild(iframe);
-
-  setTimeout(function() {
-    if (completed) return;
-
-    updatedText.textContent = 'Connection timeout.';
-    errorText.textContent =
-      'Apps Script bridge did not return data. Check deployment access and getDashboardData runtime.';
-
-    cleanup();
-  }, 60000);
-}
-  };
-
-  const script = document.createElement('script');
-  script.id = callbackName;
-  script.src =
-    APPS_SCRIPT_URL +
-    '?mode=data&callback=' +
-    encodeURIComponent(callbackName) +
-    '&v=' +
-    Date.now();
-
-  console.log('Loading Apps Script:', script.src);
-
-  script.onerror = function() {
-    if (completed) return;
-
-    updatedText.textContent = 'Connection failed.';
-    errorText.textContent =
-      'Apps Script did not load. Check deployment access or JSONP callback.';
-
-    cleanupJSONP(callbackName);
-  };
-
-  document.body.appendChild(script);
-
-  setTimeout(function() {
-    if (completed) return;
-
-    updatedText.textContent = 'Connection timeout.';
-    errorText.textContent =
-      'Apps Script did not return JSONP. Test your URL with ?mode=data&callback=testCallback.';
-
-    cleanupJSONP(callbackName);
-  }, 15000);
-}
-
-function cleanupJSONP(callbackName) {
-  const script = document.getElementById(callbackName);
-  if (script) script.remove();
-
-  try {
-    delete window[callbackName];
-  } catch (e) {
-    window[callbackName] = undefined;
-  }
-}
-
-  loadDashboardJSONP();
-}
-
-function loadDashboardJSONP() {
-  const errorText = document.getElementById('errorText');
-  const updatedText = document.getElementById('updatedText');
-
-  const callbackName = 'coeDashboardCallback_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
-  let completed = false;
-
-  window[callbackName] = function(data) {
-    completed = true;
-
-    try {
-      if (!data || data.success === false) {
-        updatedText.textContent = 'Connected, but no valid data received.';
-        errorText.textContent = data && data.message ? data.message : 'No records returned.';
-        return;
+      function cleanup() {
+        const oldFrame = document.getElementById(requestId);
+        if (oldFrame) oldFrame.remove();
+        window.removeEventListener('message', receiveMessage);
       }
 
-      dashboardData = normalizeData(data);
-      disciplinePage = 1;
-      renderDashboard();
+      function receiveMessage(event) {
+        const message = event.data;
 
-      updatedText.textContent = dashboardData.updatedAt || new Date().toLocaleString();
-      errorText.textContent = '';
+        if (!message || message.type !== 'COE_DASHBOARD_DATA') return;
+        if (message.requestId !== requestId) return;
 
-    } catch (err) {
-      updatedText.textContent = 'Data loaded with error.';
-      errorText.textContent = err.message || String(err);
+        completed = true;
 
-    } finally {
-      cleanupJSONP(callbackName);
-    }
-  };
-
-  const script = document.createElement('script');
-  script.id = callbackName;
-
-  const separator = APPS_SCRIPT_URL.includes('?') ? '&' : '?';
-  script.src =
-    APPS_SCRIPT_URL +
-    separator +
-    'mode=data&callback=' +
-    encodeURIComponent(callbackName) +
-    '&v=' +
-    Date.now();
-
-  script.onerror = function() {
-    if (completed) return;
-
-    updatedText.textContent = 'Connection failed.';
-    errorText.textContent =
-      'GitHub could not load the Apps Script endpoint. Check if APPS_SCRIPT_URL is the clean /exec URL and deployment access is Anyone.';
-
-    cleanupJSONP(callbackName);
-  };
-
-  document.body.appendChild(script);
-
-  setTimeout(function() {
-    if (completed) return;
-
-    updatedText.textContent = 'Connection timeout.';
-    errorText.textContent =
-      'Apps Script did not return JSONP data. Test the URL with ?mode=data&callback=testCallback.';
-
-    cleanupJSONP(callbackName);
-  }, 15000);
-}
-
-function cleanupJSONP(callbackName) {
-  const script = document.getElementById(callbackName);
-  if (script) script.remove();
-
-  try {
-    delete window[callbackName];
-  } catch (e) {
-    window[callbackName] = undefined;
-  }
-}
-
-      const callbackName = 'coeDashboardCallback_' + Date.now();
-
-      window[callbackName] = function(data) {
         try {
+          const data = message.data;
+
           if (!data || data.success === false) {
-            document.getElementById('updatedText').textContent = 'Connected, but no valid data received.';
-            document.getElementById('errorText').textContent =
-              data && data.message ? data.message : 'No records returned.';
+            updatedText.textContent = 'Connected, but no valid data received.';
+            errorText.textContent = data && data.message ? data.message : 'No records returned.';
             return;
           }
 
@@ -1662,36 +1454,45 @@ function cleanupJSONP(callbackName) {
           disciplinePage = 1;
           renderDashboard();
 
-          document.getElementById('updatedText').textContent =
-            dashboardData.updatedAt || new Date().toLocaleString();
+          updatedText.textContent = dashboardData.updatedAt || new Date().toLocaleString();
+          errorText.textContent = '';
 
-          document.getElementById('errorText').textContent = '';
         } catch (err) {
-          document.getElementById('updatedText').textContent = 'Data loaded with error.';
-          document.getElementById('errorText').textContent = err.message || String(err);
+          console.error('Dashboard render error:', err);
+          updatedText.textContent = 'Data loaded but render failed.';
+          errorText.textContent = err.message || String(err);
+
         } finally {
-          delete window[callbackName];
-          const oldScript = document.getElementById(callbackName);
-          if (oldScript) oldScript.remove();
+          cleanup();
         }
-      };
+      }
 
-      const script = document.createElement('script');
-      script.id = callbackName;
-      script.src = APPS_SCRIPT_URL + '?mode=data&callback=' + callbackName + '&v=' + Date.now();
+      window.addEventListener('message', receiveMessage);
 
-      script.onerror = function() {
-        document.getElementById('updatedText').textContent = 'Connection failed.';
-        document.getElementById('errorText').textContent =
-          'Unable to load data from Apps Script URL. Check deployment access.';
+      const iframe = document.createElement('iframe');
+      iframe.id = requestId;
+      iframe.style.display = 'none';
 
-        delete window[callbackName];
+      iframe.src =
+        APPS_SCRIPT_URL +
+        '?mode=bridge&requestId=' +
+        encodeURIComponent(requestId) +
+        '&v=' +
+        Date.now();
 
-        const oldScript = document.getElementById(callbackName);
-        if (oldScript) oldScript.remove();
-      };
+      console.log('Loading Apps Script bridge:', iframe.src);
 
-      document.body.appendChild(script);
+      document.body.appendChild(iframe);
+
+      setTimeout(function() {
+        if (completed) return;
+
+        updatedText.textContent = 'Connection timeout.';
+        errorText.textContent =
+          'No response from Apps Script bridge. Check Code.gs mode=bridge deployment and browser console.';
+
+        cleanup();
+      }, 30000);
     }
 
     function normalizeData(data) {
@@ -2434,16 +2235,35 @@ function cleanupJSONP(callbackName) {
       ctx.fill();
     }
 
-    applySavedTheme();
-    loadPublicLogos();
-    updateDateTime();
-    loadDashboard();
+    document.addEventListener('DOMContentLoaded', function() {
+      try {
+        applySavedTheme();
+        loadPublicLogos();
+        updateDateTime();
 
-    setInterval(updateDateTime, 1000);
-    setInterval(loadDashboard, 10000);
+        setInterval(updateDateTime, 1000);
 
-    window.addEventListener('resize', function() {
-      renderDashboard();
+        loadDashboard();
+
+        setInterval(loadDashboard, 60000);
+
+        window.addEventListener('resize', function() {
+          try {
+            renderDashboard();
+          } catch (err) {
+            console.error('Resize render error:', err);
+          }
+        });
+
+      } catch (err) {
+        console.error('Startup error:', err);
+
+        const updatedText = document.getElementById('updatedText');
+        const errorText = document.getElementById('errorText');
+
+        if (updatedText) updatedText.textContent = 'Dashboard startup error.';
+        if (errorText) errorText.textContent = err.message || String(err);
+      }
     });
   </script>
 </body>
