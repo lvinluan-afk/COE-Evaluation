@@ -1413,15 +1413,99 @@
     }
 
     function loadDashboard() {
-      document.getElementById('errorText').textContent = '';
-      document.getElementById('updatedText').textContent = 'Loading data...';
+  const errorText = document.getElementById('errorText');
+  const updatedText = document.getElementById('updatedText');
 
-      if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE') {
-        document.getElementById('updatedText').textContent = 'Apps Script URL missing.';
-        document.getElementById('errorText').textContent =
-          'Please paste your deployed Apps Script /exec URL in APPS_SCRIPT_URL.';
+  errorText.textContent = '';
+  updatedText.textContent = 'Loading data...';
+
+  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('PASTE_YOUR_APPS_SCRIPT')) {
+    updatedText.textContent = 'Apps Script URL missing.';
+    errorText.textContent = 'Paste your deployed Apps Script /exec URL in APPS_SCRIPT_URL.';
+    return;
+  }
+
+  loadDashboardJSONP();
+}
+
+function loadDashboardJSONP() {
+  const errorText = document.getElementById('errorText');
+  const updatedText = document.getElementById('updatedText');
+
+  const callbackName = 'coeDashboardCallback_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+  let completed = false;
+
+  window[callbackName] = function(data) {
+    completed = true;
+
+    try {
+      if (!data || data.success === false) {
+        updatedText.textContent = 'Connected, but no valid data received.';
+        errorText.textContent = data && data.message ? data.message : 'No records returned.';
         return;
       }
+
+      dashboardData = normalizeData(data);
+      disciplinePage = 1;
+      renderDashboard();
+
+      updatedText.textContent = dashboardData.updatedAt || new Date().toLocaleString();
+      errorText.textContent = '';
+
+    } catch (err) {
+      updatedText.textContent = 'Data loaded with error.';
+      errorText.textContent = err.message || String(err);
+
+    } finally {
+      cleanupJSONP(callbackName);
+    }
+  };
+
+  const script = document.createElement('script');
+  script.id = callbackName;
+
+  const separator = APPS_SCRIPT_URL.includes('?') ? '&' : '?';
+  script.src =
+    APPS_SCRIPT_URL +
+    separator +
+    'mode=data&callback=' +
+    encodeURIComponent(callbackName) +
+    '&v=' +
+    Date.now();
+
+  script.onerror = function() {
+    if (completed) return;
+
+    updatedText.textContent = 'Connection failed.';
+    errorText.textContent =
+      'GitHub could not load the Apps Script endpoint. Check if APPS_SCRIPT_URL is the clean /exec URL and deployment access is Anyone.';
+
+    cleanupJSONP(callbackName);
+  };
+
+  document.body.appendChild(script);
+
+  setTimeout(function() {
+    if (completed) return;
+
+    updatedText.textContent = 'Connection timeout.';
+    errorText.textContent =
+      'Apps Script did not return JSONP data. Test the URL with ?mode=data&callback=testCallback.';
+
+    cleanupJSONP(callbackName);
+  }, 15000);
+}
+
+function cleanupJSONP(callbackName) {
+  const script = document.getElementById(callbackName);
+  if (script) script.remove();
+
+  try {
+    delete window[callbackName];
+  } catch (e) {
+    window[callbackName] = undefined;
+  }
+}
 
       const callbackName = 'coeDashboardCallback_' + Date.now();
 
