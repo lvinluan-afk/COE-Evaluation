@@ -1,2270 +1,933 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>COE Evaluation Dashboard</title>
-
-  <style>
-    :root {
-      --bg:#030814;
-      --card:#071936;
-      --line:#244b87;
-      --text:#ffffff;
-      --muted:#cbd6e8;
-      --blue:#1683ff;
-      --green:#0cc34d;
-      --yellow:#ffc400;
-      --red:#ff3c4f;
-      --gold:#ffcc18;
-      --cyan:#33cfff;
-      --shadow:0 10px 26px rgba(0,0,0,.28);
-      --radius:12px;
-    }
-
-    body.light-mode {
-      --bg:#eef4ff;
-      --card:#ffffff;
-      --line:#bad0ef;
-      --text:#12213b;
-      --muted:#52637c;
-      --blue:#0968dd;
-      --green:#07933b;
-      --yellow:#c89300;
-      --red:#d53042;
-      --gold:#bb8700;
-      --cyan:#0968dd;
-      --shadow:0 8px 20px rgba(30,60,110,.10);
-    }
-
-    * {
-      box-sizing:border-box;
-    }
-
-    html,
-    body {
-      margin:0;
-      padding:0;
-      width:100%;
-      min-height:100%;
-      overflow-x:hidden;
-      font-family:"Arial Narrow", Arial, Helvetica, sans-serif;
-      background:var(--bg);
-      color:var(--text);
-    }
-
-    .dashboard {
-      min-height:100vh;
-      padding:18px;
-      background:
-        radial-gradient(circle at top left, rgba(28,106,230,.25), transparent 28%),
-        radial-gradient(circle at top right, rgba(0,255,160,.10), transparent 22%),
-        linear-gradient(135deg, #030814 0%, #061735 48%, #030814 100%);
-    }
-
-    body.light-mode .dashboard {
-      background:linear-gradient(135deg, #eef5ff 0%, #f9fbff 50%, #eaf2ff 100%);
-    }
-
-    .dashboard-inner {
-      width:100%;
-      max-width:1920px;
-      margin:0 auto;
-      display:grid;
-      gap:14px;
-    }
-
-    .panel,
-    .kpi-card,
-    .chart-card,
-    .table-card {
-      background:linear-gradient(145deg, rgba(10,30,67,.98), rgba(5,17,40,.98));
-      border:1px solid var(--line);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      overflow:hidden;
-    }
-
-    body.light-mode .panel,
-    body.light-mode .kpi-card,
-    body.light-mode .chart-card,
-    body.light-mode .table-card {
-      background:linear-gradient(145deg, #ffffff, #f6f9ff);
-    }
-
-    .top-header {
-      display:grid;
-      grid-template-columns:minmax(0, 1fr) 300px;
-      gap:14px;
-      align-items:stretch;
-    }
-
-    .hero-header {
-      min-height:150px;
-      padding:18px 26px;
-      position:relative;
-      display:grid;
-      grid-template-columns:34% 1px 1fr;
-      align-items:center;
-      gap:28px;
-      border-radius:18px;
-      background:
-        radial-gradient(circle at 5% 15%, rgba(22,131,255,.20), transparent 28%),
-        radial-gradient(circle at 94% 78%, rgba(22,131,255,.16), transparent 24%),
-        linear-gradient(145deg, rgba(8,29,67,.98), rgba(3,13,33,.98));
-      border:2px solid rgba(70,142,255,.70);
-      box-shadow:
-        0 0 0 1px rgba(70,142,255,.12),
-        0 0 18px rgba(22,131,255,.45),
-        0 14px 34px rgba(0,0,0,.34),
-        inset 0 0 28px rgba(22,131,255,.10);
-      overflow:hidden;
-    }
-
-    body.light-mode .hero-header {
-      background:linear-gradient(145deg, #ffffff, #f3f8ff);
-      border-color:#bad0ef;
-      box-shadow:var(--shadow);
-    }
-
-    .hero-header::before,
-    .hero-header::after {
-      content:"";
-      position:absolute;
-      width:150px;
-      height:115px;
-      background-image:radial-gradient(circle, rgba(22,131,255,.50) 1.2px, transparent 1.2px);
-      background-size:16px 16px;
-      opacity:.35;
-      pointer-events:none;
-    }
-
-    .hero-header::before {
-      left:22px;
-      top:18px;
-    }
-
-    .hero-header::after {
-      right:24px;
-      bottom:18px;
-    }
-
-    .hero-logos {
-      position:relative;
-      z-index:2;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      gap:26px;
-      width:100%;
-    }
-
-    .logo-box {
-      width:auto;
-      height:100px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      flex:0 0 auto;
-    }
-
-    .logo-img {
-      width:88px;
-      height:88px;
-      object-fit:contain;
-      display:block;
-      background:transparent !important;
-      border:none !important;
-      box-shadow:none !important;
-    }
-
-    .bp-logo,
-    .achieve-logo {
-      width:96px;
-      height:96px;
-      object-fit:contain;
-    }
-
-    .hero-divider {
-      position:relative;
-      z-index:2;
-      width:1px;
-      height:116px;
-      background:linear-gradient(180deg, transparent, rgba(83,150,255,.70), transparent);
-      box-shadow:0 0 16px rgba(22,131,255,.50);
-    }
-
-    .hero-title-area {
-      position:relative;
-      z-index:2;
-      min-width:0;
-      text-align:center;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      justify-content:center;
-      padding:0 52px 0 8px;
-    }
-
-    .theme-toggle {
-      position:absolute;
-      top:14px;
-      right:14px;
-      border:1px solid rgba(83,150,255,.75);
-      background:rgba(255,255,255,.07);
-      color:var(--text);
-      border-radius:8px;
-      padding:7px 11px;
-      cursor:pointer;
-      font-weight:900;
-      font-size:13px;
-      z-index:5;
-      box-shadow:0 4px 12px rgba(0,0,0,.22);
-    }
-
-    h1 {
-      margin:0;
-      font-size:48px;
-      line-height:.98;
-      letter-spacing:1px;
-      font-weight:900;
-      color:#fff;
-      text-transform:uppercase;
-      text-shadow:
-        0 4px 0 rgba(0,0,0,.48),
-        0 0 22px rgba(255,255,255,.16);
-      max-width:100%;
-    }
-
-    body.light-mode h1 {
-      color:#12213b;
-      text-shadow:none;
-    }
-
-    .main-subtitle {
-      margin-top:12px;
-      font-size:18px;
-      line-height:1.08;
-      color:var(--gold);
-      font-weight:900;
-      text-transform:uppercase;
-      max-width:100%;
-      text-align:center;
-    }
-
-    .title-line {
-      width:68%;
-      max-width:480px;
-      height:1px;
-      background:linear-gradient(90deg, transparent, rgba(255,204,24,.85), transparent);
-      margin:10px auto 9px;
-      position:relative;
-    }
-
-    .title-line::after {
-      content:"★";
-      position:absolute;
-      left:50%;
-      top:50%;
-      transform:translate(-50%, -50%);
-      color:var(--gold);
-      background:#061735;
-      padding:0 10px;
-      font-size:16px;
-      line-height:1;
-    }
-
-    body.light-mode .title-line::after {
-      background:#f7fbff;
-    }
-
-    .asof {
-      font-size:16px;
-      color:var(--text);
-      font-weight:700;
-      line-height:1.2;
-    }
-
-    .live-panel {
-      min-height:150px;
-      padding:18px 16px;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      justify-content:center;
-      text-align:center;
-      gap:9px;
-      border-radius:18px;
-      background:linear-gradient(145deg, rgba(8,29,67,.98), rgba(3,13,33,.98));
-      border:1px solid rgba(70,142,255,.55);
-      box-shadow:
-        0 0 0 1px rgba(70,142,255,.12),
-        0 14px 34px rgba(0,0,0,.34),
-        inset 0 0 18px rgba(22,131,255,.08);
-    }
-
-    body.light-mode .live-panel {
-      background:linear-gradient(145deg, #ffffff, #f3f8ff);
-      border-color:#bad0ef;
-      box-shadow:var(--shadow);
-    }
-
-    .live-title {
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      gap:8px;
-      font-size:31px;
-      line-height:1;
-      font-weight:900;
-      color:#00e550;
-      text-transform:uppercase;
-    }
-
-    .dot {
-      width:14px;
-      height:14px;
-      border-radius:50%;
-      display:inline-block;
-      background:#00e550;
-      box-shadow:0 0 14px #00e550;
-      flex-shrink:0;
-    }
-
-    .live-sub {
-      font-size:14px;
-      text-transform:uppercase;
-      font-weight:800;
-      color:var(--text);
-    }
-
-    .live-rule {
-      width:86%;
-      height:1px;
-      background:linear-gradient(90deg, transparent, rgba(83,150,255,.75), transparent);
-    }
-
-    .live-label {
-      font-size:16px;
-      font-weight:900;
-      color:var(--text);
-    }
-
-    .live-time {
-      font-size:14px;
-      line-height:1.35;
-      color:var(--text);
-    }
-
-    .error-text {
-      min-height:12px;
-      color:#ffabb4;
-      font-size:11px;
-      line-height:1.25;
-      word-break:break-word;
-      max-width:260px;
-    }
-
-    .kpi-grid {
-      display:grid;
-      grid-template-columns:repeat(5, 1fr);
-      gap:14px;
-    }
-
-    .kpi-card {
-      min-height:152px;
-      padding:18px 20px;
-      display:grid;
-      grid-template-columns:76px 1fr;
-      gap:16px;
-      align-items:center;
-      justify-content:center;
-      text-align:center;
-    }
-
-    .kpi-card.total {
-      background:linear-gradient(145deg, rgba(7,35,82,.98), rgba(5,18,47,.98));
-    }
-
-    .kpi-card.average {
-      background:linear-gradient(145deg, rgba(0,67,65,.9), rgba(5,25,42,.98));
-      border-color:rgba(0,195,150,.35);
-    }
-
-    .kpi-card.passed {
-      background:linear-gradient(145deg, rgba(0,72,55,.9), rgba(5,25,42,.98));
-      border-color:rgba(0,195,95,.35);
-    }
-
-    .kpi-card.delib {
-      background:linear-gradient(145deg, rgba(48,43,20,.95), rgba(25,25,25,.98));
-      border-color:rgba(255,196,0,.35);
-    }
-
-    .kpi-card.pending {
-      background:linear-gradient(145deg, rgba(54,18,44,.95), rgba(26,16,38,.98));
-      border-color:rgba(255,60,79,.35);
-    }
-
-    body.light-mode .kpi-card.total,
-    body.light-mode .kpi-card.average,
-    body.light-mode .kpi-card.passed,
-    body.light-mode .kpi-card.delib,
-    body.light-mode .kpi-card.pending {
-      background:linear-gradient(145deg, #fff, #f5f9ff);
-    }
-
-    .kpi-icon {
-      width:70px;
-      height:70px;
-      border-radius:50%;
-      display:grid;
-      place-items:center;
-      font-size:39px;
-      color:#fff;
-      box-shadow:inset 0 -10px 18px rgba(0,0,0,.28);
-    }
-
-    .kpi-icon.blue {
-      background:linear-gradient(145deg, #217eff, #0a59cf);
-    }
-
-    .kpi-icon.green {
-      background:linear-gradient(145deg, #12c950, #058c35);
-    }
-
-    .kpi-icon.yellow {
-      background:linear-gradient(145deg, #ffd018, #d99c00);
-    }
-
-    .kpi-icon.red {
-      background:linear-gradient(145deg, #ff5261, #ca2030);
-    }
-
-    .kpi-content {
-      min-width:0;
-      width:100%;
-      text-align:center;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      justify-content:center;
-    }
-
-    .kpi-title {
-      font-size:16px;
-      line-height:1.15;
-      font-weight:900;
-      text-transform:uppercase;
-      color:var(--text);
-      margin-bottom:10px;
-      text-align:center;
-      width:100%;
-      min-height:36px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-    }
-
-    .kpi-card.total .kpi-title {
-      color:#86beff;
-    }
-
-    .kpi-card.delib .kpi-title {
-      color:var(--yellow);
-    }
-
-    .kpi-card.pending .kpi-title {
-      color:#ff7581;
-    }
-
-    .kpi-number {
-      font-family:Arial, Helvetica, sans-serif;
-      font-size:48px;
-      line-height:.95;
-      font-weight:900;
-      letter-spacing:1px;
-      text-shadow:0 3px 0 rgba(0,0,0,.35);
-      color:var(--text);
-    }
-
-    body.light-mode .kpi-number {
-      text-shadow:none;
-    }
-
-    .kpi-note {
-      margin-top:10px;
-      font-size:16px;
-      line-height:1.15;
-      color:var(--text);
-      text-align:center;
-    }
-
-    .chart-grid {
-      display:grid;
-      grid-template-columns:.93fr 1.08fr 1.08fr;
-      gap:14px;
-    }
-
-    .chart-card {
-      min-height:430px;
-      padding:18px 20px 15px;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      justify-content:flex-start;
-    }
-
-    .section-title {
-      width:100%;
-      text-align:center;
-      margin:0 0 10px;
-      font-size:18px;
-      line-height:1.1;
-      font-weight:900;
-      text-transform:uppercase;
-      color:var(--text);
-    }
-
-    .chart-body {
-      width:100%;
-      flex:1;
-      min-height:0;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-    }
-
-    canvas {
-      display:block;
-      width:100%;
-      height:100%;
-    }
-
-    .chart-total {
-      width:100%;
-      text-align:center;
-      margin-top:8px;
-      font-size:18px;
-      font-weight:900;
-      color:var(--text);
-    }
-
-    .discipline-pagination {
-      width:100%;
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      gap:6px;
-      margin:4px 0 2px;
-    }
-
-    .discipline-page-control {
-      border:1px solid rgba(83,150,255,.75);
-      background:rgba(6,24,55,.85);
-      color:#ffffff;
-      border-radius:8px;
-      padding:5px 10px;
-      font-size:13px;
-      font-weight:900;
-      cursor:pointer;
-      line-height:1;
-      font-family:"Arial Narrow", Arial, Helvetica, sans-serif;
-    }
-
-    .discipline-page-control:hover {
-      background:rgba(22,131,255,.30);
-    }
-
-    .discipline-page-control.active {
-      background:#1683ff;
-      border-color:#43a0ff;
-      color:#ffffff;
-      box-shadow:0 0 10px rgba(22,131,255,.45);
-    }
-
-    .bottom-grid {
-      display:grid;
-      grid-template-columns:.85fr 2.15fr;
-      gap:14px;
-      align-items:stretch;
-    }
-
-    .table-card {
-      padding:0;
-      min-height:268px;
-      display:flex;
-      flex-direction:column;
-    }
-
-    .table-card-inner {
-      padding:16px;
-      display:flex;
-      flex-direction:column;
-      height:100%;
-    }
-
-    .database-title-bar {
-      width:100%;
-      padding:16px 16px 14px;
-      border-bottom:1px solid rgba(84,128,190,.45);
-      text-align:center;
-      background:rgba(255,255,255,.025);
-    }
-
-    .database-title-bar .section-title {
-      margin:0;
-      font-size:22px;
-      letter-spacing:1px;
-    }
-
-    .database-controls {
-      width:100%;
-      padding:16px;
-      display:grid;
-      grid-template-columns:minmax(250px, 1.3fr) minmax(160px, .8fr) minmax(150px, .8fr) minmax(170px, .9fr) 140px;
-      gap:12px;
-      align-items:center;
-      justify-content:center;
-      border-bottom:1px solid rgba(84,128,190,.35);
-      background:rgba(255,255,255,.018);
-    }
-
-    .search-wrap {
-      position:relative;
-      width:100%;
-    }
-
-    .search-wrap::before {
-      content:"🔍";
-      position:absolute;
-      left:16px;
-      top:50%;
-      transform:translateY(-50%);
-      opacity:.75;
-      font-size:16px;
-      pointer-events:none;
-    }
-
-    .database-controls input,
-    .database-controls select,
-    .database-controls button {
-      width:100%;
-      height:46px;
-      border-radius:8px;
-      border:1px solid rgba(84,128,190,.75);
-      background:rgba(3,12,30,.78);
-      color:var(--text);
-      font-size:15px;
-      outline:none;
-    }
-
-    body.light-mode .database-controls input,
-    body.light-mode .database-controls select {
-      background:#ffffff;
-      color:#12213b;
-    }
-
-    .database-controls input {
-      padding:0 14px 0 44px;
-    }
-
-    .database-controls select {
-      padding:0 14px;
-    }
-
-    .database-controls button {
-      background:linear-gradient(145deg, #3778ff, #1261ff);
-      border-color:#4384ff;
-      font-weight:900;
-      cursor:pointer;
-      box-shadow:0 5px 16px rgba(20,100,255,.28);
-      color:#fff;
-    }
-
-    .database-meta {
-      display:flex;
-      flex-wrap:wrap;
-      justify-content:center;
-      gap:8px;
-      padding:10px 16px;
-      border-bottom:1px solid rgba(84,128,190,.25);
-    }
-
-    .meta-chip {
-      border:1px solid rgba(84,128,190,.55);
-      border-radius:999px;
-      padding:7px 12px;
-      font-size:13px;
-      color:var(--muted);
-      background:rgba(255,255,255,.03);
-      font-weight:800;
-    }
-
-    .table-wrap {
-      width:100%;
-      overflow:auto;
-      -webkit-overflow-scrolling:touch;
-    }
-
-    .database-table-wrap {
-      padding:16px;
-      overflow-x:hidden;
-    }
-
-    table {
-      width:100%;
-      border-collapse:collapse;
-      font-size:14px;
-    }
-
-    th,
-    td {
-      border:1px solid rgba(84,128,190,.35);
-      padding:10px 12px;
-      color:var(--text);
-      text-align:center;
-      vertical-align:middle;
-      white-space:nowrap;
-    }
-
-    th {
-      background:rgba(255,255,255,.04);
-      font-weight:900;
-      position:sticky;
-      top:0;
-      z-index:2;
-      backdrop-filter:blur(6px);
-    }
-
-    td.left,
-    th.left {
-      text-align:left;
-      white-space:normal;
-      min-width:180px;
-    }
-
-    .status-pill {
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      padding:5px 10px;
-      border-radius:999px;
-      font-weight:900;
-      text-transform:uppercase;
-      font-size:12px;
-      white-space:nowrap;
-    }
-
-    .status-pass {
-      color:#071d0f;
-      background:#16e45d;
-    }
-
-    .status-delib {
-      color:#2f2300;
-      background:#ffcc00;
-    }
-
-    .status-pending {
-      color:#fff;
-      background:#ff354c;
-    }
-
-    #liveDatabaseTable {
-      width:100%;
-      table-layout:fixed;
-      border-collapse:collapse;
-      font-size:12px;
-    }
-
-    #liveDatabaseTable th,
-    #liveDatabaseTable td {
-      white-space:normal;
-      word-break:normal;
-      overflow-wrap:break-word;
-      line-height:1.25;
-      padding:10px 10px;
-    }
-
-    #liveDatabaseTable th:nth-child(1),
-    #liveDatabaseTable td:nth-child(1) { width:4%; }
-
-    #liveDatabaseTable th:nth-child(2),
-    #liveDatabaseTable td:nth-child(2) { width:6%; }
-
-    #liveDatabaseTable th:nth-child(3),
-    #liveDatabaseTable td:nth-child(3) { width:15%; }
-
-    #liveDatabaseTable th:nth-child(4),
-    #liveDatabaseTable td:nth-child(4) { width:18%; }
-
-    #liveDatabaseTable th:nth-child(5),
-    #liveDatabaseTable td:nth-child(5) { width:20%; }
-
-    #liveDatabaseTable th:nth-child(6),
-    #liveDatabaseTable td:nth-child(6) { width:6%; }
-
-    #liveDatabaseTable th:nth-child(7),
-    #liveDatabaseTable td:nth-child(7) { width:14%; }
-
-    #liveDatabaseTable th:nth-child(8),
-    #liveDatabaseTable td:nth-child(8) { width:8%; }
-
-    #liveDatabaseTable th:nth-child(9),
-    #liveDatabaseTable td:nth-child(9) { width:9%; }
-
-    #liveDatabaseTable td.left,
-    #liveDatabaseTable th.left {
-      min-width:0;
-      white-space:normal;
-      text-align:left;
-    }
-
-    #liveDatabaseTable td:nth-child(5) {
-      font-size:11.5px;
-    }
-
-    #liveDatabaseTable .status-pill {
-      min-width:0;
-      width:100%;
-      max-width:170px;
-      padding:7px 8px;
-      font-size:11px;
-      line-height:1;
-    }
-
-    .view-all-btn {
-      margin:0 auto 16px;
-      border:none;
-      background:transparent;
-      color:#1694ff;
-      font-size:18px;
-      font-weight:900;
-      cursor:pointer;
-      text-align:center;
-      display:block;
-      text-decoration:underline;
-      text-underline-offset:5px;
-    }
-
-    .footer-note {
-      text-align:center;
-      color:var(--muted);
-      font-size:13px;
-      padding:4px;
-    }
-
-    @media (max-width:1200px) {
-      .top-header {
-        grid-template-columns:1fr;
-      }
-
-      .database-controls {
-        grid-template-columns:1fr 1fr;
-      }
-
-      .database-controls button {
-        grid-column:1 / -1;
-      }
-    }
-
-    @media (max-width:1050px) {
-      .hero-header {
-        grid-template-columns:1fr;
-        gap:14px;
-        padding:18px 14px;
-        min-height:auto;
-      }
-
-      .hero-divider {
-        width:80%;
-        height:1px;
-        margin:0 auto;
-        background:linear-gradient(90deg, transparent, rgba(83,150,255,.55), transparent);
-      }
-
-      .hero-title-area {
-        padding:0 44px;
-      }
-
-      h1 {
-        font-size:38px;
-      }
-
-      .kpi-grid {
-        grid-template-columns:repeat(2, 1fr);
-      }
-
-      .kpi-card.pending {
-        grid-column:1 / -1;
-      }
-
-      .chart-grid,
-      .bottom-grid {
-        grid-template-columns:1fr;
-      }
-    }
-
-    @media (max-width:768px) {
-      .dashboard {
-        padding:8px;
-      }
-
-      .dashboard-inner {
-        gap:8px;
-      }
-
-      .hero-header,
-      .live-panel {
-        border-radius:14px;
-      }
-
-      .hero-header {
-        padding:14px 10px;
-      }
-
-      .hero-logos {
-        gap:14px;
-      }
-
-      .logo-box {
-        height:70px;
-      }
-
-      .logo-img {
-        width:56px;
-        height:56px;
-      }
-
-      .bp-logo,
-      .achieve-logo {
-        width:64px;
-        height:64px;
-      }
-
-      .hero-title-area {
-        padding:0 34px;
-      }
-
-      h1 {
-        font-size:30px;
-        line-height:1.02;
-      }
-
-      .main-subtitle {
-        font-size:14px;
-        margin-top:8px;
-      }
-
-      .asof {
-        font-size:12px;
-      }
-
-      .theme-toggle {
-        top:10px;
-        right:10px;
-        padding:5px 7px;
-        font-size:9px;
-        border-radius:7px;
-      }
-
-      .live-panel {
-        min-height:140px;
-        padding:14px 10px;
-        gap:8px;
-      }
-
-      .live-title {
-        font-size:22px;
-      }
-
-      .kpi-grid {
-        grid-template-columns:1fr;
-        gap:8px;
-      }
-
-      .kpi-card,
-      .kpi-card.pending {
-        grid-column:auto;
-        min-height:110px;
-        padding:14px 16px;
-        grid-template-columns:56px 1fr;
-        gap:12px;
-      }
-
-      .kpi-icon {
-        width:52px;
-        height:52px;
-        font-size:26px;
-      }
-
-      .kpi-title {
-        font-size:13px;
-        margin-bottom:6px;
-        min-height:30px;
-        line-height:1.1;
-      }
-
-      .kpi-number {
-        font-size:34px;
-      }
-
-      .kpi-note {
-        font-size:12px;
-        margin-top:6px;
-      }
-
-      .chart-card {
-        min-height:460px;
-        padding:14px 12px;
-      }
-
-      .section-title {
-        font-size:15px;
-      }
-
-      .database-controls {
-        grid-template-columns:1fr;
-        gap:8px;
-        padding:12px;
-      }
-
-      .database-controls input,
-      .database-controls select,
-      .database-controls button {
-        height:42px;
-        font-size:12px;
-      }
-
-      .database-table-wrap {
-        overflow-x:auto;
-      }
-
-      #liveDatabaseTable {
-        min-width:900px;
-        table-layout:fixed;
-        font-size:11px;
-      }
-
-      .view-all-btn {
-        font-size:14px;
-      }
-    }
-  </style>
-</head>
-
-<body>
-  <div class="dashboard">
-    <div class="dashboard-inner">
-
-      <div class="top-header">
-        <div class="panel hero-header">
-          <button class="theme-toggle" onclick="toggleTheme()" id="themeToggleBtn">☀ Day</button>
-
-          <div class="hero-logos">
-            <div class="logo-box">
-              <img id="chedLogoPreview" class="logo-img" alt="CHED Logo">
-            </div>
-
-            <div class="logo-box">
-              <img id="bpLogoPreview" class="logo-img bp-logo" alt="Bagong Pilipinas Logo">
-            </div>
-
-            <div class="logo-box">
-              <img id="achieveLogoPreview" class="logo-img achieve-logo" alt="ACHIEVE Logo">
-            </div>
-          </div>
-
-          <div class="hero-divider"></div>
-
-          <div class="hero-title-area">
-            <h1>COE Evaluation Dashboard</h1>
-            <div class="main-subtitle">Live Center of Excellence Evaluation Result Dashboard</div>
-            <div class="title-line"></div>
-            <div class="asof" id="todayDate">As of --</div>
-          </div>
-        </div>
-
-        <div class="panel live-panel">
-          <div class="live-title"><span class="dot"></span> Live</div>
-          <div class="live-sub">Data is up to date</div>
-          <div class="live-rule"></div>
-          <div class="live-label">Last Updated:</div>
-          <div class="live-time" id="updatedText">Loading data...</div>
-          <div class="live-time" id="clockText">Time: --</div>
-          <div class="error-text" id="errorText"></div>
-        </div>
-      </div>
-
-      <div class="kpi-grid">
-        <div class="kpi-card total">
-          <div class="kpi-icon blue">▤</div>
-          <div class="kpi-content">
-            <div class="kpi-title">Total Applications</div>
-            <div class="kpi-number" id="totalApplications">0</div>
-            <div class="kpi-note">All applications received</div>
-          </div>
-        </div>
-
-        <div class="kpi-card average">
-          <div class="kpi-icon green">★</div>
-          <div class="kpi-content">
-            <div class="kpi-title">Average Evaluation Score</div>
-            <div class="kpi-number" id="averageScore">0</div>
-            <div class="kpi-note">Overall average score</div>
-          </div>
-        </div>
-
-        <div class="kpi-card passed">
-          <div class="kpi-icon green">✓</div>
-          <div class="kpi-content">
-            <div class="kpi-title">Qualified / Passed</div>
-            <div class="kpi-number" id="passedCount">0</div>
-            <div class="kpi-note">Score ≥ <span id="passingScore">60</span></div>
-          </div>
-        </div>
-
-        <div class="kpi-card delib">
-          <div class="kpi-icon yellow">◷</div>
-          <div class="kpi-content">
-            <div class="kpi-title">For Deliberation</div>
-            <div class="kpi-number" id="delibCount">0</div>
-            <div class="kpi-note">Below passing score</div>
-          </div>
-        </div>
-
-        <div class="kpi-card pending">
-          <div class="kpi-icon red">⌛</div>
-          <div class="kpi-content">
-            <div class="kpi-title">Pending Evaluation</div>
-            <div class="kpi-number" id="pendingCount">0</div>
-            <div class="kpi-note">Not yet evaluated</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="chart-grid">
-        <div class="chart-card">
-          <h2 class="section-title">Evaluation Breakdown</h2>
-          <div class="chart-body">
-            <canvas id="breakdownChart"></canvas>
-          </div>
-          <div class="chart-total">Total: <span class="totalText">0</span></div>
-        </div>
-
-        <div class="chart-card">
-          <h2 class="section-title">Applications per Discipline</h2>
-          <div class="chart-body">
-            <canvas id="disciplineChart"></canvas>
-          </div>
-          <div class="discipline-pagination" id="disciplinePagination"></div>
-          <div class="chart-total">Total: <span class="totalText">0</span></div>
-        </div>
-
-        <div class="chart-card">
-          <h2 class="section-title">Applications per Region</h2>
-          <div class="chart-body">
-            <canvas id="regionChart"></canvas>
-          </div>
-          <div class="chart-total">Total: <span class="totalText">0</span></div>
-        </div>
-      </div>
-
-      <div class="bottom-grid">
-        <div class="table-card">
-          <div class="table-card-inner">
-            <h2 class="section-title">Top Programs</h2>
-            <div class="table-wrap">
-              <table id="topProgramsTable"></table>
-            </div>
-            <div class="chart-total">Total: <span class="totalText">0</span></div>
-          </div>
-        </div>
-
-        <div class="table-card">
-          <div class="database-title-bar">
-            <h2 class="section-title">Live Combined Evaluation Database</h2>
-          </div>
-
-          <div class="database-controls">
-            <div class="search-wrap">
-              <input id="searchInput" type="text" placeholder="Search HEI, program, discipline..." oninput="renderLiveDatabaseTable()" />
-            </div>
-
-            <select id="resultFilter" onchange="renderLiveDatabaseTable()">
-              <option value="">All Results</option>
-              <option value="QUALIFIED / PASSED">Qualified / Passed</option>
-              <option value="FOR DELIBERATION">For Deliberation</option>
-              <option value="Pending Evaluation">Pending Evaluation</option>
-            </select>
-
-            <select id="regionFilter" onchange="renderLiveDatabaseTable()">
-              <option value="">All Regions</option>
-            </select>
-
-            <select id="disciplineFilter" onchange="renderLiveDatabaseTable()">
-              <option value="">All Disciplines</option>
-            </select>
-
-            <button onclick="loadDashboard()">↻ Refresh</button>
-          </div>
-
-          <div class="database-meta">
-            <span class="meta-chip">Showing: <b id="showingCount">0</b></span>
-            <span class="meta-chip">Filtered Total: <b id="filteredCount">0</b></span>
-            <span class="meta-chip">Passing Score: <b id="metaPassingScore">60</b></span>
-          </div>
-
-          <div class="table-wrap database-table-wrap">
-            <table id="liveDatabaseTable"></table>
-          </div>
-
-          <button class="view-all-btn" id="viewAllBtn" onclick="toggleViewAll()">View All Applications ›</button>
-        </div>
-      </div>
-
-      <div class="footer-note">
-        All data is real-time and synchronized from Google Sheet source files.
-      </div>
-    </div>
-  </div>
-
-  <script>
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwOSIkZboo99nY3eYtn3lhkOk4m_SBpkneq4W3Wuy10QEKBY_YKSgheo-gMFLwhFa3zSA/exec';
-
-    const CHED_LOGO_URL = './images/ched-logo.png';
-    const BP_LOGO_URL = './images/bagong-pilipinas-logo.png';
-    const ACHIEVE_LOGO_URL = './images/achieve-logo.png';
-
-    const REGION_ORDER = [
-      'I','II','III','IV-A','V','VI','VII','VIII','IX','X','XI','XII',
-      'NCR','CAR','CARAGA','MIMAROPA','NIR','BARMM'
-    ];
-
-    let showAllApplications = false;
-    let disciplinePage = 1;
-    const DISCIPLINES_PER_PAGE = 15;
-
-    let dashboardData = {
-      records: [],
-      resultTable: [],
-      programTable: [],
-      disciplineTable: [],
-      regionTable: [],
-      updatedAt: '',
-      kpi: {}
-    };
-
-    function loadPublicLogos() {
-      document.getElementById('chedLogoPreview').src = CHED_LOGO_URL;
-      document.getElementById('bpLogoPreview').src = BP_LOGO_URL;
-      document.getElementById('achieveLogoPreview').src = ACHIEVE_LOGO_URL;
-    }
-
-    function normalizeResult(value) {
-      const v = String(value || '').trim().toUpperCase();
-
-      if (
-        v === 'QUALIFIED / PASSED' ||
-        v === 'QUALIFIED/PASSED' ||
-        v === 'PASSED' ||
-        v === 'QUALIFIED'
-      ) return 'QUALIFIED / PASSED';
-
-      if (
-        v === 'FOR DELIBERATION' ||
-        v === 'DELIBERATION' ||
-        v === 'FOR-DELIBERATION'
-      ) return 'FOR DELIBERATION';
-
-      return 'Pending Evaluation';
-    }
-
-    function toNumber(value) {
-      if (typeof value === 'number') return value;
-      const cleaned = String(value ?? '').replace(/[^0-9.\-]/g, '').trim();
-      if (cleaned === '') return NaN;
-      return Number(cleaned);
-    }
-
-    function normalizeRegionValue(region) {
-      let r = String(region || '').trim().toUpperCase();
-      if (!r) return 'Unspecified';
-
-      r = r.replace(/\s+/g, ' ');
-      r = r.replace(/^REGION /, '');
-      r = r.replace(/^REG /, '');
-      r = r.replace(/^R-?/, '');
-      r = r.replace(/\./g, '');
-
-      const map = {
-        '1':'I', '01':'I', 'I':'I', 'ILOCOS':'I', 'ILOCOS REGION':'I',
-        '2':'II', '02':'II', 'II':'II', 'CAGAYAN VALLEY':'II',
-        '3':'III', '03':'III', 'III':'III', 'CENTRAL LUZON':'III',
-        'IV-A':'IV-A', 'IVA':'IV-A', 'IV A':'IV-A', '4A':'IV-A', '4-A':'IV-A', 'CALABARZON':'IV-A',
-        'IV B':'MIMAROPA', 'IV-B':'MIMAROPA', 'IVB':'MIMAROPA', '4B':'MIMAROPA', 'MIMAROPA':'MIMAROPA', 'MIMAROPA REGION':'MIMAROPA',
-        'V':'V', '5':'V', '05':'V', 'BICOL':'V', 'BICOL REGION':'V',
-        'VI':'VI', '6':'VI', '06':'VI', 'WESTERN VISAYAS':'VI',
-        'VII':'VII', '7':'VII', '07':'VII', 'CENTRAL VISAYAS':'VII',
-        'VIII':'VIII', '8':'VIII', '08':'VIII', 'EASTERN VISAYAS':'VIII',
-        'IX':'IX', '9':'IX', '09':'IX', 'ZAMBOANGA PENINSULA':'IX',
-        'X':'X', '10':'X', 'NORTHERN MINDANAO':'X',
-        'XI':'XI', '11':'XI', 'DAVAO':'XI', 'DAVAO REGION':'XI',
-        'XII':'XII', '12':'XII', 'SOCCSKSARGEN':'XII',
-        'NCR':'NCR', 'NATIONAL CAPITAL REGION':'NCR',
-        'CAR':'CAR', 'CORDILLERA ADMINISTRATIVE REGION':'CAR',
-        'CARAGA':'CARAGA', 'CARAGA REGION':'CARAGA',
-        'NIR':'NIR', 'NEGROS ISLAND REGION':'NIR',
-        'BARMM':'BARMM', 'BANGSAMORO':'BARMM', 'BANGSAMORO AUTONOMOUS REGION IN MUSLIM MINDANAO':'BARMM', 'ARMM':'BARMM'
-      };
-
-      return map[r] || r;
-    }
-
-    function fmt(value) {
-      return Number(value || 0).toLocaleString();
-    }
-
-    function percent(value, total) {
-      if (!total) return 0;
-      return (Number(value || 0) / Number(total || 1)) * 100;
-    }
-
-    function shortText(value, max) {
-      const text = String(value || '');
-      return text.length > max ? text.slice(0, max - 1) + '…' : text;
-    }
-
-    function escapeHtml(value) {
-      return String(value ?? '')
-        .replaceAll('&','&amp;')
-        .replaceAll('<','&lt;')
-        .replaceAll('>','&gt;')
-        .replaceAll('"','&quot;')
-        .replaceAll("'","&#039;");
-    }
-
-    function getSortableDateValue(record) {
-      const text = String(record.dateEvaluated || '').trim();
-      if (!text || text === '-') return 0;
-
-      const parsed = new Date(text);
-      if (!isNaN(parsed.getTime())) return parsed.getTime();
-
-      return 0;
-    }
-
-    function isEvaluatedRecord(record) {
-      const result = normalizeResult(record.evaluationResult);
-      const score = toNumber(record.score);
-      const dateText = String(record.dateEvaluated || '').trim();
-
-      if (result === 'Pending Evaluation') return false;
-      if (!isNaN(score)) return true;
-      if (dateText && dateText !== '-') return true;
-
-      return false;
-    }
-
-    function updateDateTime() {
-      const now = new Date();
-
-      document.getElementById('todayDate').textContent =
-        'As of ' + now.toLocaleDateString(undefined, {
-          year:'numeric',
-          month:'long',
-          day:'numeric'
-        }) + ' ' + now.toLocaleTimeString(undefined, {
-          hour:'2-digit',
-          minute:'2-digit',
-          second:'2-digit'
-        });
-
-      document.getElementById('clockText').textContent =
-        'Time: ' + now.toLocaleTimeString(undefined, {
-          hour:'2-digit',
-          minute:'2-digit',
-          second:'2-digit'
-        });
-    }
-
-    function toggleTheme() {
-      document.body.classList.toggle('light-mode');
-      const isLight = document.body.classList.contains('light-mode');
-      document.getElementById('themeToggleBtn').textContent = isLight ? '🌙 Night' : '☀ Day';
-      localStorage.setItem('coeDashboardTheme', isLight ? 'light' : 'dark');
-      renderDashboard();
-    }
-
-    function applySavedTheme() {
-      const savedTheme = localStorage.getItem('coeDashboardTheme');
-
-      if (savedTheme === 'light') {
-        document.body.classList.add('light-mode');
-        document.getElementById('themeToggleBtn').textContent = '🌙 Night';
-      } else {
-        document.body.classList.remove('light-mode');
-        document.getElementById('themeToggleBtn').textContent = '☀ Day';
-      }
-    }
-
-    function loadDashboard() {
-      const errorText = document.getElementById('errorText');
-      const updatedText = document.getElementById('updatedText');
-
-      if (!errorText || !updatedText) return;
-
-      errorText.textContent = '';
-      updatedText.textContent = 'Loading data...';
-
-      if (!APPS_SCRIPT_URL) {
-        updatedText.textContent = 'Apps Script URL missing.';
-        errorText.textContent = 'APPS_SCRIPT_URL is empty.';
+<script>
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwOSIkZboo99nY3eYtn3lhkOk4m_SBpkneq4W3Wuy10QEKBY_YKSgheo-gMFLwhFa3zSA/exec';
+
+const CHED_LOGO_URL = './images/ched-logo.png';
+const BP_LOGO_URL = './images/bagong-pilipinas-logo.png';
+const ACHIEVE_LOGO_URL = './images/achieve-logo.png';
+
+const REGION_ORDER = [
+  'I','II','III','IV-A','V','VI','VII','VIII','IX','X','XI','XII',
+  'NCR','CAR','CARAGA','MIMAROPA','NIR','BARMM'
+];
+
+let dashboardData = {
+  records: [],
+  programTable: [],
+  disciplineTable: [],
+  regionTable: [],
+  resultTable: [],
+  updatedAt: '',
+  kpi: {}
+};
+
+let showAllApplications = false;
+let disciplinePage = 1;
+const DISCIPLINES_PER_PAGE = 15;
+
+function loadPublicLogos() {
+  const ched = document.getElementById('chedLogoPreview');
+  const bp = document.getElementById('bpLogoPreview');
+  const achieve = document.getElementById('achieveLogoPreview');
+
+  if (ched) ched.src = CHED_LOGO_URL;
+  if (bp) bp.src = BP_LOGO_URL;
+  if (achieve) achieve.src = ACHIEVE_LOGO_URL;
+}
+
+function updateDateTime() {
+  const now = new Date();
+
+  const todayDate = document.getElementById('todayDate');
+  const clockText = document.getElementById('clockText');
+
+  if (todayDate) {
+    todayDate.textContent =
+      'As of ' +
+      now.toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }) +
+      ' ' +
+      now.toLocaleTimeString(undefined, {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+  }
+
+  if (clockText) {
+    clockText.textContent =
+      'Time: ' +
+      now.toLocaleTimeString(undefined, {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+  }
+}
+
+function loadDashboard() {
+  const updatedText = document.getElementById('updatedText');
+  const errorText = document.getElementById('errorText');
+
+  if (updatedText) updatedText.textContent = 'Loading data...';
+  if (errorText) errorText.textContent = '';
+
+  const callbackName =
+    'coeDashboardCallback_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+
+  let completed = false;
+
+  window[callbackName] = function(data) {
+    completed = true;
+
+    try {
+      if (!data || data.success === false) {
+        if (updatedText) updatedText.textContent = 'Connected, but no valid data.';
+        if (errorText) errorText.textContent = data && data.message ? data.message : 'No data returned.';
         return;
       }
 
-      const requestId = 'coe_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
-      let completed = false;
+      dashboardData = normalizeData(data);
+      disciplinePage = 1;
+      renderDashboard();
 
-      function cleanup() {
-        const oldFrame = document.getElementById(requestId);
-        if (oldFrame) oldFrame.remove();
-        window.removeEventListener('message', receiveMessage);
+      if (updatedText) {
+        updatedText.textContent = dashboardData.updatedAt || new Date().toLocaleString();
       }
 
-      function receiveMessage(event) {
-        const message = event.data;
+      if (errorText) errorText.textContent = '';
 
-        if (!message || message.type !== 'COE_DASHBOARD_DATA') return;
-        if (message.requestId !== requestId) return;
+    } catch (err) {
+      console.error(err);
+      if (updatedText) updatedText.textContent = 'Data loaded but render failed.';
+      if (errorText) errorText.textContent = err.message || String(err);
 
-        completed = true;
+    } finally {
+      cleanupJSONP(callbackName);
+    }
+  };
 
-        try {
-          const data = message.data;
+  const script = document.createElement('script');
+  script.id = callbackName;
+  script.src =
+    APPS_SCRIPT_URL +
+    '?mode=data&callback=' +
+    encodeURIComponent(callbackName) +
+    '&v=' +
+    Date.now();
 
-          if (!data || data.success === false) {
-            updatedText.textContent = 'Connected, but no valid data received.';
-            errorText.textContent = data && data.message ? data.message : 'No records returned.';
-            return;
-          }
+  script.onerror = function() {
+    if (completed) return;
 
-          dashboardData = normalizeData(data);
-          disciplinePage = 1;
-          renderDashboard();
-
-          updatedText.textContent = dashboardData.updatedAt || new Date().toLocaleString();
-          errorText.textContent = '';
-
-        } catch (err) {
-          console.error('Dashboard render error:', err);
-          updatedText.textContent = 'Data loaded but render failed.';
-          errorText.textContent = err.message || String(err);
-
-        } finally {
-          cleanup();
-        }
-      }
-
-      window.addEventListener('message', receiveMessage);
-
-      const iframe = document.createElement('iframe');
-      iframe.id = requestId;
-      iframe.style.display = 'none';
-
-      iframe.src =
-        APPS_SCRIPT_URL +
-        '?mode=bridge&requestId=' +
-        encodeURIComponent(requestId) +
-        '&v=' +
-        Date.now();
-
-      console.log('Loading Apps Script bridge:', iframe.src);
-
-      document.body.appendChild(iframe);
-
-      setTimeout(function() {
-        if (completed) return;
-
-        updatedText.textContent = 'Connection timeout.';
-        errorText.textContent =
-          'No response from Apps Script bridge. Check Code.gs mode=bridge deployment and browser console.';
-
-        cleanup();
-      }, 30000);
+    if (updatedText) updatedText.textContent = 'Connection failed.';
+    if (errorText) {
+      errorText.textContent =
+        'Unable to load Apps Script data. Check deployment access and Code.gs doGet.';
     }
 
-    function normalizeData(data) {
-      const rawRecords = Array.isArray(data.records) ? data.records : [];
+    cleanupJSONP(callbackName);
+  };
 
-      const records = rawRecords.map(function(record, index) {
-        const scoreValue = toNumber(record.score);
-        const normalizedResult = normalizeResult(record.evaluationResult);
-        const regionValue = normalizeRegionValue(record.region);
+  document.body.appendChild(script);
 
-        return {
-          no: record.no || (index + 1),
-          sourceFile: record.sourceFile || '',
-          discipline: record.discipline || '',
-          region: regionValue,
-          hei: record.hei || '',
-          program: record.program || '',
-          score: isNaN(scoreValue) ? '' : scoreValue,
-          rating: record.rating || '',
-          decision: record.decision || '',
-          evaluationResult: normalizedResult,
-          evaluator: record.evaluator || '',
-          dateEvaluated: record.dateEvaluated || '',
-          remarks: record.remarks || ''
-        };
-      });
+  setTimeout(function() {
+    if (completed) return;
 
-      return {
-        updatedAt: data.updatedAt || new Date().toLocaleString(),
-        kpi: data.kpi || {},
-        records: records,
-        resultTable: buildCountTable(records, 'evaluationResult', 'Evaluation Result'),
-        programTable: buildCountTable(records, 'program', 'Program'),
-        disciplineTable: buildCountTable(records, 'discipline', 'Discipline'),
-        regionTable: buildRegionTable(records)
-      };
+    if (updatedText) updatedText.textContent = 'Connection timeout.';
+    if (errorText) {
+      errorText.textContent =
+        'Apps Script did not return data. Redeploy Code.gs as new version.';
     }
 
-    function buildCountTable(records, field, headerName) {
-      const map = {};
+    cleanupJSONP(callbackName);
+  }, 30000);
+}
 
-      records.forEach(function(record) {
-        const key = String(record[field] || 'Unspecified').trim() || 'Unspecified';
-        map[key] = (map[key] || 0) + 1;
-      });
+function cleanupJSONP(callbackName) {
+  const script = document.getElementById(callbackName);
+  if (script) script.remove();
 
-      return [[headerName, 'Count']].concat(
-        Object.keys(map)
-          .sort(function(a, b) { return map[b] - map[a]; })
-          .map(function(key) { return [key, map[key]]; })
-      );
+  try {
+    delete window[callbackName];
+  } catch (e) {
+    window[callbackName] = undefined;
+  }
+}
+
+function normalizeData(data) {
+  const rawRecords = Array.isArray(data.records) ? data.records : [];
+
+  const records = rawRecords.map(function(record, index) {
+    const scoreValue = toNumber(record.score);
+
+    return {
+      no: record.no || index + 1,
+      region: normalizeRegionValue(record.region),
+      hei: record.hei || '',
+      program: record.program || '',
+      discipline: record.discipline || '',
+      score: isNaN(scoreValue) ? '' : scoreValue,
+      evaluationResult: normalizeResult(record.evaluationResult),
+      evaluator: record.evaluator || 'Unassigned',
+      dateEvaluated: record.dateEvaluated || '',
+      remarks: record.remarks || '',
+      sourceFile: record.sourceFile || ''
+    };
+  });
+
+  return {
+    updatedAt: data.updatedAt || new Date().toLocaleString(),
+    kpi: data.kpi || {},
+    records: records,
+    resultTable: buildCountTable(records, 'evaluationResult', 'Evaluation Result'),
+    programTable: buildCountTable(records, 'program', 'Program'),
+    disciplineTable: buildCountTable(records, 'discipline', 'Discipline'),
+    regionTable: buildRegionTable(records)
+  };
+}
+
+function renderDashboard() {
+  const summary = getSummary();
+
+  setText('totalApplications', fmt(summary.total));
+  setText('averageScore', summary.averageScore.toFixed(2));
+  setText('passedCount', fmt(summary.passed));
+  setText('delibCount', fmt(summary.delib));
+  setText('pendingCount', fmt(summary.pending));
+  setText('passingScore', fmt(summary.passingScore));
+  setText('metaPassingScore', fmt(summary.passingScore));
+
+  document.querySelectorAll('.totalText').forEach(function(el) {
+    el.textContent = fmt(summary.total);
+  });
+
+  populateFilters();
+  renderTopProgramsTable();
+  renderLiveDatabaseTable();
+  drawBreakdownChart();
+  drawDisciplineChart();
+  drawRegionChart();
+}
+
+function getSummary() {
+  const records = dashboardData.records || [];
+
+  let passed = 0;
+  let delib = 0;
+  let pending = 0;
+  let scoreTotal = 0;
+  let scoreCount = 0;
+
+  records.forEach(function(record) {
+    const result = normalizeResult(record.evaluationResult);
+    const score = toNumber(record.score);
+
+    if (result === 'QUALIFIED / PASSED') passed++;
+    else if (result === 'FOR DELIBERATION') delib++;
+    else pending++;
+
+    if (!isNaN(score)) {
+      scoreTotal += score;
+      scoreCount++;
     }
+  });
 
-    function buildRegionTable(records) {
-      const map = {};
+  return {
+    total: records.length,
+    passed: passed,
+    delib: delib,
+    pending: pending,
+    averageScore: scoreCount ? scoreTotal / scoreCount : 0,
+    passingScore: dashboardData.kpi.passingScore || 60
+  };
+}
 
-      records.forEach(function(record) {
-        const region = normalizeRegionValue(record.region);
-        map[region] = (map[region] || 0) + 1;
-      });
+function populateFilters() {
+  const regionFilter = document.getElementById('regionFilter');
+  const disciplineFilter = document.getElementById('disciplineFilter');
 
-      const table = [['Region', 'Applications']];
+  if (!regionFilter || !disciplineFilter) return;
 
-      REGION_ORDER.forEach(function(region) {
-        table.push([region, map[region] || 0]);
-      });
+  const currentRegion = regionFilter.value;
+  const currentDiscipline = disciplineFilter.value;
 
-      Object.keys(map)
-        .filter(function(region) { return !REGION_ORDER.includes(region) && region !== 'Unspecified'; })
-        .sort(function(a, b) { return map[b] - map[a]; })
-        .forEach(function(region) {
-          table.push([region, map[region]]);
-        });
+  regionFilter.innerHTML =
+    '<option value="">All Regions</option>' +
+    REGION_ORDER.map(function(region) {
+      return '<option value="' + escapeHtml(region) + '">' + escapeHtml(region) + '</option>';
+    }).join('');
 
-      if (map.Unspecified) {
-        table.push(['Unspecified', map.Unspecified]);
-      }
+  const disciplines = dashboardData.disciplineTable
+    .slice(1)
+    .map(function(row) { return row[0]; })
+    .filter(function(value) { return value && value !== 'Unspecified'; })
+    .sort();
 
-      return table;
-    }
+  disciplineFilter.innerHTML =
+    '<option value="">All Disciplines</option>' +
+    disciplines.map(function(discipline) {
+      return '<option value="' + escapeHtml(discipline) + '">' + escapeHtml(discipline) + '</option>';
+    }).join('');
 
-    function getSummary() {
-      const records = dashboardData.records || [];
-      const total = records.length;
+  regionFilter.value = currentRegion;
+  disciplineFilter.value = currentDiscipline;
+}
 
-      let passed = 0;
-      let delib = 0;
-      let pending = 0;
-      let scoreTotal = 0;
-      let scoreCount = 0;
+function renderTopProgramsTable() {
+  const table = document.getElementById('topProgramsTable');
+  if (!table) return;
 
-      records.forEach(function(record) {
-        const result = normalizeResult(record.evaluationResult);
-        const score = toNumber(record.score);
+  const rows = dashboardData.programTable.slice(1, 6);
 
-        if (result === 'QUALIFIED / PASSED') passed++;
-        else if (result === 'FOR DELIBERATION') delib++;
-        else pending++;
+  let html = `
+    <tr>
+      <th class="left">Program</th>
+      <th>Applications</th>
+    </tr>
+  `;
 
-        if (!isNaN(score)) {
-          scoreTotal += score;
-          scoreCount++;
-        }
-      });
+  rows.forEach(function(row) {
+    html += `
+      <tr>
+        <td class="left">${escapeHtml(row[0])}</td>
+        <td><b>${fmt(row[1])}</b></td>
+      </tr>
+    `;
+  });
 
-      return {
-        total: total,
-        passed: passed,
-        delib: delib,
-        pending: pending,
-        evaluated: passed + delib,
-        averageScore: scoreCount ? scoreTotal / scoreCount : 0,
-        passingScore: dashboardData.kpi.passingScore || 60
-      };
-    }
+  if (!rows.length) {
+    html += '<tr><td colspan="2">No program data yet.</td></tr>';
+  }
 
-    function renderDashboard() {
-      if (!dashboardData || !Array.isArray(dashboardData.records)) return;
+  table.innerHTML = html;
+}
 
-      const s = getSummary();
+function renderLiveDatabaseTable() {
+  const table = document.getElementById('liveDatabaseTable');
+  if (!table) return;
 
-      document.getElementById('totalApplications').textContent = fmt(s.total);
-      document.getElementById('averageScore').textContent = s.averageScore.toFixed(2);
-      document.getElementById('passedCount').textContent = fmt(s.passed);
-      document.getElementById('delibCount').textContent = fmt(s.delib);
-      document.getElementById('pendingCount').textContent = fmt(s.pending);
-      document.getElementById('passingScore').textContent = fmt(s.passingScore);
-      document.getElementById('metaPassingScore').textContent = fmt(s.passingScore);
+  const filteredRecords = getFilteredDatabaseRecords();
+  let records = filteredRecords;
 
-      document.querySelectorAll('.totalText').forEach(function(el) {
-        el.textContent = fmt(s.total);
-      });
+  if (!showAllApplications) {
+    records = getRecentEvaluatedRecords(filteredRecords).slice(0, 5);
+  }
 
-      dashboardData.resultTable = buildCountTable(dashboardData.records, 'evaluationResult', 'Evaluation Result');
-      dashboardData.programTable = buildCountTable(dashboardData.records, 'program', 'Program');
-      dashboardData.disciplineTable = buildCountTable(dashboardData.records, 'discipline', 'Discipline');
-      dashboardData.regionTable = buildRegionTable(dashboardData.records);
+  let html = `
+    <tr>
+      <th>No.</th>
+      <th>Region</th>
+      <th>HEI</th>
+      <th>Program</th>
+      <th>Discipline</th>
+      <th>Score</th>
+      <th>Result</th>
+      <th>Evaluator</th>
+      <th>Date Evaluated</th>
+    </tr>
+  `;
 
-      populateFilters();
+  records.forEach(function(record) {
+    html += `
+      <tr>
+        <td>${escapeHtml(record.no)}</td>
+        <td><b>${escapeHtml(record.region)}</b></td>
+        <td class="left">${escapeHtml(record.hei)}</td>
+        <td class="left">${escapeHtml(record.program)}</td>
+        <td>${escapeHtml(record.discipline)}</td>
+        <td>${record.score === '' ? 'N/A' : Number(record.score).toFixed(2)}</td>
+        <td>${resultText(record.evaluationResult)}</td>
+        <td>${escapeHtml(record.evaluator || '-')}</td>
+        <td>${escapeHtml(record.dateEvaluated || '-')}</td>
+      </tr>
+    `;
+  });
+
+  if (!records.length) {
+    html += '<tr><td colspan="9">No recent evaluated application record found.</td></tr>';
+  }
+
+  table.innerHTML = html;
+
+  setText('showingCount', fmt(records.length));
+  setText('filteredCount', fmt(filteredRecords.length));
+
+  const btn = document.getElementById('viewAllBtn');
+  if (btn) {
+    btn.textContent = showAllApplications
+      ? 'Show Recent Evaluated Applications ↑'
+      : 'View All Applications ›';
+  }
+}
+
+function getFilteredDatabaseRecords() {
+  const search = getValue('searchInput').toLowerCase().trim();
+  const resultFilter = getValue('resultFilter');
+  const regionFilter = getValue('regionFilter');
+  const disciplineFilter = getValue('disciplineFilter');
+
+  let records = (dashboardData.records || []).slice();
+
+  records.sort(function(a, b) {
+    const dateB = getSortableDateValue(b);
+    const dateA = getSortableDateValue(a);
+
+    if (dateB !== dateA) return dateB - dateA;
+
+    return Number(b.no || 0) - Number(a.no || 0);
+  });
+
+  if (search) {
+    records = records.filter(function(record) {
+      return [
+        record.no,
+        record.region,
+        record.hei,
+        record.program,
+        record.discipline,
+        record.score,
+        record.evaluationResult,
+        record.evaluator,
+        record.dateEvaluated
+      ].join(' ').toLowerCase().includes(search);
+    });
+  }
+
+  if (resultFilter) {
+    records = records.filter(function(record) {
+      return record.evaluationResult === resultFilter;
+    });
+  }
+
+  if (regionFilter) {
+    records = records.filter(function(record) {
+      return record.region === regionFilter;
+    });
+  }
+
+  if (disciplineFilter) {
+    records = records.filter(function(record) {
+      return record.discipline === disciplineFilter;
+    });
+  }
+
+  return records;
+}
+
+function getRecentEvaluatedRecords(records) {
+  return records
+    .filter(isEvaluatedRecord)
+    .sort(function(a, b) {
+      const dateB = getSortableDateValue(b);
+      const dateA = getSortableDateValue(a);
+
+      if (dateB !== dateA) return dateB - dateA;
+
+      return Number(b.no || 0) - Number(a.no || 0);
+    });
+}
+
+function toggleViewAll() {
+  showAllApplications = !showAllApplications;
+  renderLiveDatabaseTable();
+}
+
+function drawBreakdownChart() {
+  const setup = setupCanvas('breakdownChart');
+  if (!setup) return;
+
+  const ctx = setup.ctx;
+  const w = setup.w;
+  const h = setup.h;
+  const s = getSummary();
+
+  ctx.clearRect(0, 0, w, h);
+
+  const values = [s.passed, s.delib, s.pending];
+  const labels = ['Qualified / Passed', 'For Deliberation', 'Pending Evaluation'];
+  const colors = ['#11b94c', '#ffc400', '#ec3346'];
+  const total = s.total || 1;
+
+  const cx = w * .32;
+  const cy = h * .47;
+  const r = Math.min(w, h) * .32;
+
+  let start = -Math.PI / 2;
+
+  values.forEach(function(value, index) {
+    const angle = value / total * Math.PI * 2;
+
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, start, start + angle);
+    ctx.closePath();
+    ctx.fillStyle = colors[index];
+    ctx.fill();
+
+    start += angle;
+  });
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, r * .46, 0, Math.PI * 2);
+  ctx.fillStyle = cssVar('--card');
+  ctx.fill();
+
+  let y = h * .22;
+
+  labels.forEach(function(label, index) {
+    ctx.fillStyle = colors[index];
+    ctx.beginPath();
+    ctx.arc(w * .65, y, 10, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = cssVar('--text');
+    ctx.font = '14px Arial';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, w * .70, y);
+
+    ctx.fillText(
+      fmt(values[index]) + ' (' + percent(values[index], s.total).toFixed(1) + '%)',
+      w * .70,
+      y + 24
+    );
+
+    y += 58;
+  });
+}
+
+function drawDisciplineChart() {
+  const setup = setupCanvas('disciplineChart');
+  if (!setup) return;
+
+  const ctx = setup.ctx;
+  const w = setup.w;
+  const h = setup.h;
+
+  ctx.clearRect(0, 0, w, h);
+
+  const allRows = dashboardData.disciplineTable
+    .slice(1)
+    .filter(function(row) {
+      return row[0] && row[0] !== 'Unspecified';
+    });
+
+  if (!allRows.length) {
+    drawNoData(ctx, w, h, 'No discipline data yet.');
+    renderDisciplinePagination(0);
+    return;
+  }
+
+  const totalPages = Math.max(1, Math.ceil(allRows.length / DISCIPLINES_PER_PAGE));
+
+  if (disciplinePage > totalPages) disciplinePage = totalPages;
+  if (disciplinePage < 1) disciplinePage = 1;
+
+  const rows = allRows.slice(
+    (disciplinePage - 1) * DISCIPLINES_PER_PAGE,
+    disciplinePage * DISCIPLINES_PER_PAGE
+  );
+
+  const values = rows.map(function(row) { return Number(row[1]) || 0; });
+  const max = Math.max.apply(null, values.concat([1]));
+
+  const left = w < 500 ? 118 : 170;
+  const right = 42;
+  const top = 12;
+  const bottom = 18;
+  const plotW = w - left - right;
+  const plotH = h - top - bottom;
+  const gap = plotH / rows.length;
+  const barH = Math.max(7, Math.min(18, gap * 0.58));
+
+  rows.forEach(function(row, index) {
+    const label = String(row[0]);
+    const value = Number(row[1]) || 0;
+    const y = top + gap * index + (gap - barH) / 2;
+    const barW = plotW * value / max;
+
+    ctx.fillStyle = cssVar('--text');
+    ctx.font = w < 500 ? '9px Arial' : '11px Arial';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(shortText(label, w < 500 ? 18 : 30), left - 10, y + barH / 2);
+
+    const grad = ctx.createLinearGradient(left, y, left + barW, y);
+    grad.addColorStop(0, '#1683ff');
+    grad.addColorStop(1, '#075bc8');
+
+    roundRect(ctx, left, y, Math.max(barW, value > 0 ? 4 : 0), barH, 4, grad);
+
+    ctx.fillStyle = cssVar('--text');
+    ctx.font = w < 500 ? 'bold 9px Arial' : 'bold 11px Arial';
+    ctx.textAlign = 'left';
+    ctx.fillText(fmt(value), left + barW + 6, y + barH / 2);
+  });
+
+  renderDisciplinePagination(totalPages);
+}
+
+function renderDisciplinePagination(totalPages) {
+  const container = document.getElementById('disciplinePagination');
+  if (!container) return;
+
+  if (!totalPages || totalPages <= 1) {
+    container.innerHTML = '';
+    return;
+  }
+
+  let html = '<button class="discipline-page-control" onclick="prevDisciplinePage()">‹ Prev</button>';
+
+  for (let i = 1; i <= totalPages; i++) {
+    html += '<button class="discipline-page-control ' +
+      (i === disciplinePage ? 'active' : '') +
+      '" onclick="goToDisciplinePage(' + i + ')">' + i + '</button>';
+  }
+
+  html += '<button class="discipline-page-control" onclick="nextDisciplinePage()">Next ›</button>';
+
+  container.innerHTML = html;
+}
+
+function goToDisciplinePage(page) {
+  disciplinePage = page;
+  drawDisciplineChart();
+}
+
+function nextDisciplinePage() {
+  const totalPages = Math.max(
+    1,
+    Math.ceil((dashboardData.disciplineTable.length - 1) / DISCIPLINES_PER_PAGE)
+  );
+
+  disciplinePage++;
+  if (disciplinePage > totalPages) disciplinePage = 1;
+
+  drawDisciplineChart();
+}
+
+function prevDisciplinePage() {
+  const totalPages = Math.max(
+    1,
+    Math.ceil((dashboardData.disciplineTable.length - 1) / DISCIPLINES_PER_PAGE)
+  );
+
+  disciplinePage--;
+  if (disciplinePage < 1) disciplinePage = totalPages;
+
+  drawDisciplineChart();
+}
+
+function drawRegionChart() {
+  const setup = setupCanvas('regionChart');
+  if (!setup) return;
+
+  const ctx = setup.ctx;
+  const w = setup.w;
+  const h = setup.h;
+
+  ctx.clearRect(0, 0, w, h);
+
+  const rows = dashboardData.regionTable
+    .slice(1)
+    .filter(function(row) { return row[0] !== 'Unspecified'; });
+
+  if (!rows.length) {
+    drawNoData(ctx, w, h, 'No regional data yet.');
+    return;
+  }
+
+  const labels = rows.map(function(row) { return String(row[0]); });
+  const values = rows.map(function(row) { return Number(row[1]) || 0; });
+  const max = Math.max.apply(null, values.concat([1]));
+
+  const left = 42;
+  const right = 22;
+  const top = 24;
+  const bottom = 78;
+  const plotW = w - left - right;
+  const plotH = h - top - bottom;
+
+  const stepX = labels.length > 1 ? plotW / (labels.length - 1) : plotW;
+
+  function getX(index) {
+    return left + stepX * index;
+  }
+
+  function getY(value) {
+    return top + plotH - value / max * plotH;
+  }
+
+  ctx.beginPath();
+  ctx.moveTo(getX(0), getY(values[0]));
+
+  for (let i = 1; i < values.length; i++) {
+    ctx.lineTo(getX(i), getY(values[i]));
+  }
+
+  ctx.strokeStyle = '#33cfff';
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
+  values.forEach(function(value, index) {
+    const x = getX(index);
+    const y = getY(value);
+
+    ctx.beginPath();
+    ctx.arc(x, y, 4, 0, Math.PI * 2);
+    ctx.fillStyle = '#33cfff';
+    ctx.fill();
+
+    ctx.fillStyle = cssVar('--text');
+    ctx.font = 'bold 11px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(fmt(value), x, y - 8);
+  });
+
+  ctx.fillStyle = cssVar('--text');
+  ctx.font = '10.5px Arial';
+  ctx.textAlign = 'right';
+
+  labels.forEach(function(label, index) {
+    const x = getX(index);
+    const y = top + plotH + 21;
+
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(-Math.PI / 4);
+    ctx.fillText(label, 0, 0);
+    ctx.restore();
+  });
+}
+
+function setupCanvas(id) {
+  const canvas = document.getElementById(id);
+  if (!canvas) return null;
+
+  const rect = canvas.getBoundingClientRect();
+  const ratio = window.devicePixelRatio || 1;
+
+  canvas.width = Math.max(rect.width * ratio, 1);
+  canvas.height = Math.max(rect.height * ratio, 1);
+
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+
+  return {
+    canvas: canvas,
+    ctx: ctx,
+    w: rect.width,
+    h: rect.height
+  };
+}
+
+function drawNoData(ctx, w, h, text) {
+  ctx.fillStyle = cssVar('--text');
+  ctx.font = '14px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, w / 2, h / 2);
+}
+
+function roundRect(ctx, x, y, w, h, r, fillStyle) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+  ctx.fillStyle = fillStyle;
+  ctx.fill();
+}
+
+function resultText(value) {
+  const result = normalizeResult(value);
+  let cls = 'status-pending';
+
+  if (result === 'QUALIFIED / PASSED') cls = 'status-pass';
+  if (result === 'FOR DELIBERATION') cls = 'status-delib';
+
+  return '<span class="status-pill ' + cls + '">' + escapeHtml(result) + '</span>';
+}
+
+function normalizeResult(value) {
+  const v = String(value || '').trim().toUpperCase();
+
+  if (
+    v === 'QUALIFIED / PASSED' ||
+    v === 'QUALIFIED/PASSED' ||
+    v === 'PASSED' ||
+    v === 'QUALIFIED'
+  ) return 'QUALIFIED / PASSED';
+
+  if (
+    v === 'FOR DELIBERATION' ||
+    v === 'DELIBERATION' ||
+    v === 'FOR-DELIBERATION'
+  ) return 'FOR DELIBERATION';
+
+  return 'Pending Evaluation';
+}
+
+function normalizeRegionValue(region) {
+  let r = String(region || '').trim().toUpperCase();
+
+  if (!r) return 'Unspecified';
+
+  r = r.replace(/\s+/g, ' ');
+  r = r.replace(/^REGION /, '');
+  r = r.replace(/^REG /, '');
+  r = r.replace(/\./g, '');
+
+  const map = {
+    '1':'I','01':'I','I':'I',
+    '2':'II','02':'II','II':'II',
+    '3':'III','03':'III','III':'III',
+    'IVA':'IV-A','IV A':'IV-A','IV-A':'IV-A','4A':'IV-A','4-A':'IV-A','CALABARZON':'IV-A',
+    'V':'V','5':'V','05':'V',
+    'VI':'VI','6':'VI','06':'VI',
+    'VII':'VII','7':'VII','07':'VII',
+    'VIII':'VIII','8':'VIII','08':'VIII',
+    'IX':'IX','9':'IX','09':'IX',
+    'X':'X','10':'X',
+    'XI':'XI','11':'XI',
+    'XII':'XII','12':'XII',
+    'NCR':'NCR',
+    'CAR':'CAR',
+    'CARAGA':'CARAGA',
+    'MIMAROPA':'MIMAROPA',
+    'IVB':'MIMAROPA','IV-B':'MIMAROPA','4B':'MIMAROPA',
+    'NIR':'NIR',
+    'BARMM':'BARMM','ARMM':'BARMM'
+  };
+
+  return map[r] || r;
+}
+
+function toNumber(value) {
+  if (typeof value === 'number') return value;
+
+  const cleaned = String(value ?? '').replace(/[^0-9.\-]/g, '').trim();
+
+  if (cleaned === '') return NaN;
+
+  return Number(cleaned);
+}
+
+function getSortableDateValue(record) {
+  const text = String(record.dateEvaluated || '').trim();
+
+  if (!text || text === '-') return 0;
+
+  const parsed = new Date(text);
+
+  if (!isNaN(parsed.getTime())) return parsed.getTime();
+
+  return 0;
+}
+
+function isEvaluatedRecord(record) {
+  const result = normalizeResult(record.evaluationResult);
+  const score = toNumber(record.score);
+  const dateText = String(record.dateEvaluated || '').trim();
+
+  if (result === 'Pending Evaluation') return false;
+  if (!isNaN(score)) return true;
+  if (dateText && dateText !== '-') return true;
+
+  return false;
+}
+
+function buildCountTable(records, field, headerName) {
+  const map = {};
+
+  records.forEach(function(record) {
+    const key = String(record[field] || 'Unspecified').trim() || 'Unspecified';
+    map[key] = (map[key] || 0) + 1;
+  });
+
+  return [[headerName, 'Count']].concat(
+    Object.keys(map)
+      .sort(function(a, b) { return map[b] - map[a]; })
+      .map(function(key) { return [key, map[key]]; })
+  );
+}
+
+function buildRegionTable(records) {
+  const map = {};
+
+  records.forEach(function(record) {
+    const region = normalizeRegionValue(record.region);
+    map[region] = (map[region] || 0) + 1;
+  });
+
+  const table = [['Region', 'Applications']];
+
+  REGION_ORDER.forEach(function(region) {
+    table.push([region, map[region] || 0]);
+  });
+
+  return table;
+}
+
+function percent(value, total) {
+  if (!total) return 0;
+  return Number(value || 0) / Number(total || 1) * 100;
+}
+
+function fmt(value) {
+  return Number(value || 0).toLocaleString();
+}
+
+function shortText(value, max) {
+  const text = String(value || '');
+  return text.length > max ? text.slice(0, max - 1) + '…' : text;
+}
+
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
+function cssVar(name) {
+  return getComputedStyle(document.body).getPropertyValue(name).trim();
+}
+
+function setText(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = value;
+}
+
+function getValue(id) {
+  const el = document.getElementById(id);
+  return el ? el.value || '' : '';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  loadPublicLogos();
+  updateDateTime();
+  setInterval(updateDateTime, 1000);
+
+  loadDashboard();
+  setInterval(loadDashboard, 60000);
+
+  window.addEventListener('resize', function() {
+    if (dashboardData.records.length) {
       drawBreakdownChart();
       drawDisciplineChart();
       drawRegionChart();
-      renderTopProgramsTable();
-      renderLiveDatabaseTable();
     }
-
-    function populateFilters() {
-      const regionSelect = document.getElementById('regionFilter');
-      const disciplineSelect = document.getElementById('disciplineFilter');
-
-      const currentRegion = regionSelect.value || '';
-      const currentDiscipline = disciplineSelect.value || '';
-
-      const disciplineOptions = (dashboardData.disciplineTable || [])
-        .slice(1)
-        .map(function(row) { return String(row[0]); })
-        .filter(function(value) { return value && value !== 'Unspecified'; })
-        .sort();
-
-      regionSelect.innerHTML =
-        '<option value="">All Regions</option>' +
-        REGION_ORDER.map(function(region) {
-          return '<option value="' + escapeHtml(region) + '">' + escapeHtml(region) + '</option>';
-        }).join('');
-
-      disciplineSelect.innerHTML =
-        '<option value="">All Disciplines</option>' +
-        disciplineOptions.map(function(discipline) {
-          return '<option value="' + escapeHtml(discipline) + '">' + escapeHtml(discipline) + '</option>';
-        }).join('');
-
-      regionSelect.value = currentRegion;
-      disciplineSelect.value = currentDiscipline;
-    }
-
-    function renderTopProgramsTable() {
-      const rows = (dashboardData.programTable || []).slice(1).slice(0, 5);
-
-      let html = `
-        <tr>
-          <th class="left">Program</th>
-          <th>Applications</th>
-        </tr>
-      `;
-
-      html += rows.map(function(row) {
-        return `
-          <tr>
-            <td class="left">${escapeHtml(row[0])}</td>
-            <td><b>${fmt(row[1])}</b></td>
-          </tr>
-        `;
-      }).join('');
-
-      if (!rows.length) {
-        html += '<tr><td colspan="2">No program data yet.</td></tr>';
-      }
-
-      document.getElementById('topProgramsTable').innerHTML = html;
-    }
-
-    function getFilteredDatabaseRecords() {
-      const search = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
-      const resultFilter = document.getElementById('resultFilter')?.value || '';
-      const regionFilter = document.getElementById('regionFilter')?.value || '';
-      const disciplineFilter = document.getElementById('disciplineFilter')?.value || '';
-
-      let records = dashboardData.records || [];
-
-      records = records.slice().sort(function(a, b) {
-        const dateB = getSortableDateValue(b);
-        const dateA = getSortableDateValue(a);
-
-        if (dateB !== dateA) return dateB - dateA;
-
-        return Number(b.no || 0) - Number(a.no || 0);
-      });
-
-      if (search) {
-        records = records.filter(function(record) {
-          return [
-            record.no,
-            record.region,
-            record.hei,
-            record.program,
-            record.discipline,
-            record.score,
-            record.evaluationResult,
-            record.evaluator,
-            record.dateEvaluated
-          ].join(' ').toLowerCase().includes(search);
-        });
-      }
-
-      if (resultFilter) {
-        records = records.filter(function(record) {
-          return record.evaluationResult === resultFilter;
-        });
-      }
-
-      if (regionFilter) {
-        records = records.filter(function(record) {
-          return record.region === regionFilter;
-        });
-      }
-
-      if (disciplineFilter) {
-        records = records.filter(function(record) {
-          return record.discipline === disciplineFilter;
-        });
-      }
-
-      return records;
-    }
-
-    function getRecentEvaluatedRecords(records) {
-      return (records || [])
-        .filter(function(record) {
-          return isEvaluatedRecord(record);
-        })
-        .sort(function(a, b) {
-          const dateB = getSortableDateValue(b);
-          const dateA = getSortableDateValue(a);
-
-          if (dateB !== dateA) return dateB - dateA;
-
-          return Number(b.no || 0) - Number(a.no || 0);
-        });
-    }
-
-    function renderLiveDatabaseTable() {
-      const filteredRecords = getFilteredDatabaseRecords();
-      let records = filteredRecords;
-
-      if (!showAllApplications) {
-        records = getRecentEvaluatedRecords(filteredRecords).slice(0, 5);
-      }
-
-      let html = `
-        <tr>
-          <th>No.</th>
-          <th>Region</th>
-          <th>HEI</th>
-          <th>Program</th>
-          <th>Discipline</th>
-          <th>Score</th>
-          <th>Result</th>
-          <th>Evaluator</th>
-          <th>Date Evaluated</th>
-        </tr>
-      `;
-
-      html += records.map(function(record) {
-        return `
-          <tr>
-            <td>${escapeHtml(record.no)}</td>
-            <td><b>${escapeHtml(record.region)}</b></td>
-            <td class="left">${escapeHtml(record.hei)}</td>
-            <td class="left">${escapeHtml(record.program)}</td>
-            <td>${escapeHtml(record.discipline)}</td>
-            <td>${escapeHtml(record.score === '' ? 'N/A' : Number(record.score).toFixed(2))}</td>
-            <td>${resultText(record.evaluationResult)}</td>
-            <td>${escapeHtml(record.evaluator || '-')}</td>
-            <td>${escapeHtml(record.dateEvaluated || '-')}</td>
-          </tr>
-        `;
-      }).join('');
-
-      if (!records.length) {
-        html += '<tr><td colspan="9">No recent evaluated application record found.</td></tr>';
-      }
-
-      document.getElementById('liveDatabaseTable').innerHTML = html;
-
-      document.getElementById('viewAllBtn').textContent =
-        showAllApplications ? 'Show Recent Evaluated Applications ↑' : 'View All Applications ›';
-
-      document.getElementById('showingCount').textContent = fmt(records.length);
-      document.getElementById('filteredCount').textContent = fmt(filteredRecords.length);
-    }
-
-    function toggleViewAll() {
-      showAllApplications = !showAllApplications;
-      renderLiveDatabaseTable();
-    }
-
-    function resultText(value) {
-      const result = normalizeResult(value);
-      let cls = 'status-pending';
-
-      if (result === 'QUALIFIED / PASSED') cls = 'status-pass';
-      if (result === 'FOR DELIBERATION') cls = 'status-delib';
-
-      return `<span class="status-pill ${cls}">${escapeHtml(result)}</span>`;
-    }
-
-    function setupCanvas(id) {
-      const canvas = document.getElementById(id);
-      const rect = canvas.getBoundingClientRect();
-      const ratio = window.devicePixelRatio || 1;
-
-      canvas.width = Math.max(rect.width * ratio, 1);
-      canvas.height = Math.max(rect.height * ratio, 1);
-
-      const ctx = canvas.getContext('2d');
-      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-
-      return {
-        canvas: canvas,
-        ctx: ctx,
-        w: rect.width,
-        h: rect.height
-      };
-    }
-
-    function cssVar(name) {
-      return getComputedStyle(document.body).getPropertyValue(name).trim();
-    }
-
-    function drawBreakdownChart() {
-      const setup = setupCanvas('breakdownChart');
-      const ctx = setup.ctx;
-      const w = setup.w;
-      const h = setup.h;
-
-      ctx.clearRect(0, 0, w, h);
-
-      const s = getSummary();
-      const values = [s.passed, s.delib, s.pending];
-      const labels = ['Qualified / Passed', 'For Deliberation', 'Pending Evaluation'];
-      const colors = ['#11b94c', '#ffc400', '#ec3346'];
-      const total = s.total || 1;
-
-      const cx = w * .32;
-      const cy = h * .47;
-      const r = Math.min(w, h) * .32;
-
-      let start = -Math.PI / 2;
-
-      values.forEach(function(value, index) {
-        const angle = (value / total) * Math.PI * 2;
-
-        ctx.beginPath();
-        ctx.moveTo(cx, cy);
-        ctx.arc(cx, cy, r, start, start + angle);
-        ctx.closePath();
-        ctx.fillStyle = colors[index];
-        ctx.fill();
-
-        if (value > 0) {
-          const mid = start + angle / 2;
-          ctx.fillStyle = '#fff';
-          ctx.font = 'bold 14px Arial';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(
-            percent(value, s.total).toFixed(1) + '%',
-            cx + Math.cos(mid) * r * .68,
-            cy + Math.sin(mid) * r * .68
-          );
-        }
-
-        start += angle;
-      });
-
-      ctx.beginPath();
-      ctx.arc(cx, cy, r * .46, 0, Math.PI * 2);
-      ctx.fillStyle = cssVar('--card');
-      ctx.fill();
-
-      let y = h * .22;
-
-      labels.forEach(function(label, index) {
-        ctx.fillStyle = colors[index];
-        ctx.beginPath();
-        ctx.arc(w * .65, y, 10, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = cssVar('--text');
-        ctx.font = '14px Arial';
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(label, w * .70, y);
-
-        ctx.font = '14px Arial';
-        ctx.fillText(
-          fmt(values[index]) + ' (' + percent(values[index], s.total).toFixed(1) + '%)',
-          w * .70,
-          y + 24
-        );
-
-        y += 58;
-      });
-    }
-
-    function drawDisciplineChart() {
-      const setup = setupCanvas('disciplineChart');
-      const ctx = setup.ctx;
-      const w = setup.w;
-      const h = setup.h;
-
-      ctx.clearRect(0, 0, w, h);
-
-      const allRows = (dashboardData.disciplineTable || [])
-        .slice(1)
-        .filter(function(row) {
-          return row[0] && row[0] !== 'Unspecified';
-        });
-
-      if (!allRows.length) {
-        ctx.fillStyle = cssVar('--text');
-        ctx.font = '14px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('No discipline data yet.', w / 2, h / 2);
-        renderDisciplinePagination(0);
-        return;
-      }
-
-      const totalPages = Math.max(1, Math.ceil(allRows.length / DISCIPLINES_PER_PAGE));
-
-      if (disciplinePage > totalPages) disciplinePage = totalPages;
-      if (disciplinePage < 1) disciplinePage = 1;
-
-      const startIndex = (disciplinePage - 1) * DISCIPLINES_PER_PAGE;
-      const rows = allRows.slice(startIndex, startIndex + DISCIPLINES_PER_PAGE);
-
-      const labels = rows.map(function(row) { return String(row[0]); });
-      const values = rows.map(function(row) { return Number(row[1]) || 0; });
-      const max = Math.max(...values, 1);
-
-      const left = w < 500 ? 118 : 170;
-      const right = 42;
-      const top = 12;
-      const bottom = 18;
-
-      const plotW = w - left - right;
-      const plotH = h - top - bottom;
-      const gap = plotH / rows.length;
-      const barH = Math.max(7, Math.min(18, gap * 0.58));
-
-      ctx.strokeStyle = 'rgba(180,210,255,.14)';
-      ctx.lineWidth = 1;
-
-      for (let i = 0; i <= 4; i++) {
-        const x = left + (plotW / 4) * i;
-        ctx.beginPath();
-        ctx.moveTo(x, top);
-        ctx.lineTo(x, top + plotH);
-        ctx.stroke();
-      }
-
-      rows.forEach(function(row, index) {
-        const label = labels[index];
-        const value = values[index];
-
-        const y = top + gap * index + (gap - barH) / 2;
-        const barW = plotW * value / max;
-
-        ctx.fillStyle = cssVar('--text');
-        ctx.font = w < 500 ? '9px Arial' : '11px Arial';
-        ctx.textAlign = 'right';
-        ctx.textBaseline = 'middle';
-
-        const displayLabel = shortText(label, w < 500 ? 18 : 30);
-        ctx.fillText(displayLabel, left - 10, y + barH / 2);
-
-        const grad = ctx.createLinearGradient(left, y, left + barW, y);
-        grad.addColorStop(0, '#1683ff');
-        grad.addColorStop(1, '#075bc8');
-
-        roundRect(ctx, left, y, Math.max(barW, value > 0 ? 4 : 0), barH, 4, grad);
-
-        ctx.fillStyle = cssVar('--text');
-        ctx.font = w < 500 ? 'bold 9px Arial' : 'bold 11px Arial';
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(fmt(value), left + barW + 6, y + barH / 2);
-      });
-
-      ctx.strokeStyle = 'rgba(180,210,255,.30)';
-      ctx.beginPath();
-      ctx.moveTo(left, top + plotH);
-      ctx.lineTo(w - right, top + plotH);
-      ctx.stroke();
-
-      renderDisciplinePagination(totalPages);
-    }
-
-    function renderDisciplinePagination(totalPages) {
-      const container = document.getElementById('disciplinePagination');
-      if (!container) return;
-
-      if (!totalPages || totalPages <= 1) {
-        container.innerHTML = '';
-        return;
-      }
-
-      let html = '';
-
-      html += `
-        <button class="discipline-page-control" onclick="prevDisciplinePage()">
-          ‹ Prev
-        </button>
-      `;
-
-      for (let i = 1; i <= totalPages; i++) {
-        html += `
-          <button class="discipline-page-control ${i === disciplinePage ? 'active' : ''}" onclick="goToDisciplinePage(${i})">
-            ${i}
-          </button>
-        `;
-      }
-
-      html += `
-        <button class="discipline-page-control" onclick="nextDisciplinePage()">
-          Next ›
-        </button>
-      `;
-
-      container.innerHTML = html;
-    }
-
-    function goToDisciplinePage(page) {
-      disciplinePage = page;
-      drawDisciplineChart();
-    }
-
-    function nextDisciplinePage() {
-      const allRows = (dashboardData.disciplineTable || [])
-        .slice(1)
-        .filter(function(row) {
-          return row[0] && row[0] !== 'Unspecified';
-        });
-
-      const totalPages = Math.max(1, Math.ceil(allRows.length / DISCIPLINES_PER_PAGE));
-
-      disciplinePage++;
-      if (disciplinePage > totalPages) disciplinePage = 1;
-
-      drawDisciplineChart();
-    }
-
-    function prevDisciplinePage() {
-      const allRows = (dashboardData.disciplineTable || [])
-        .slice(1)
-        .filter(function(row) {
-          return row[0] && row[0] !== 'Unspecified';
-        });
-
-      const totalPages = Math.max(1, Math.ceil(allRows.length / DISCIPLINES_PER_PAGE));
-
-      disciplinePage--;
-      if (disciplinePage < 1) disciplinePage = totalPages;
-
-      drawDisciplineChart();
-    }
-
-    function drawRegionChart() {
-      const setup = setupCanvas('regionChart');
-      const ctx = setup.ctx;
-      const w = setup.w;
-      const h = setup.h;
-
-      ctx.clearRect(0, 0, w, h);
-
-      const rows = (dashboardData.regionTable || [])
-        .slice(1)
-        .filter(function(row) { return row[0] !== 'Unspecified'; });
-
-      const labels = rows.map(function(row) { return String(row[0]); });
-      const values = rows.map(function(row) { return Number(row[1]) || 0; });
-      const max = Math.max(...values, 1);
-
-      const left = 42;
-      const right = 22;
-      const top = 24;
-      const bottom = 78;
-      const plotW = w - left - right;
-      const plotH = h - top - bottom;
-
-      if (!labels.length) {
-        ctx.fillStyle = cssVar('--text');
-        ctx.font = '14px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('No regional data yet.', w / 2, h / 2);
-        return;
-      }
-
-      const stepX = labels.length > 1 ? plotW / (labels.length - 1) : plotW;
-
-      function getX(index) {
-        return left + stepX * index;
-      }
-
-      function getY(value) {
-        return top + plotH - (Number(value || 0) / max) * plotH;
-      }
-
-      ctx.strokeStyle = 'rgba(180,210,255,.18)';
-      ctx.lineWidth = 1;
-
-      for (let i = 0; i <= 4; i++) {
-        const y = top + (plotH / 4) * i;
-        ctx.beginPath();
-        ctx.moveTo(left, y);
-        ctx.lineTo(w - right, y);
-        ctx.stroke();
-      }
-
-      const areaGradient = ctx.createLinearGradient(0, top, 0, top + plotH);
-      areaGradient.addColorStop(0, 'rgba(51,207,255,.58)');
-      areaGradient.addColorStop(1, 'rgba(51,207,255,.08)');
-
-      ctx.beginPath();
-      ctx.moveTo(getX(0), getY(values[0]));
-
-      for (let i = 1; i < values.length; i++) {
-        ctx.lineTo(getX(i), getY(values[i]));
-      }
-
-      ctx.lineTo(getX(values.length - 1), top + plotH);
-      ctx.lineTo(getX(0), top + plotH);
-      ctx.closePath();
-      ctx.fillStyle = areaGradient;
-      ctx.fill();
-
-      ctx.beginPath();
-      ctx.moveTo(getX(0), getY(values[0]));
-
-      for (let i = 1; i < values.length; i++) {
-        ctx.lineTo(getX(i), getY(values[i]));
-      }
-
-      ctx.strokeStyle = '#33cfff';
-      ctx.lineWidth = 3;
-      ctx.lineJoin = 'round';
-      ctx.lineCap = 'round';
-      ctx.stroke();
-
-      ctx.strokeStyle = 'rgba(180,210,255,.35)';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(left, top + plotH);
-      ctx.lineTo(w - right, top + plotH);
-      ctx.stroke();
-
-      const valueFont = w < 430 ? 'bold 9px Arial' : 'bold 11px Arial';
-      const labelFont = w < 430 ? '9px Arial' : '10.5px Arial';
-
-      values.forEach(function(value, index) {
-        const x = getX(index);
-        const y = getY(value);
-
-        ctx.beginPath();
-        ctx.arc(x, y, w < 430 ? 3.2 : 4.2, 0, Math.PI * 2);
-        ctx.fillStyle = '#33cfff';
-        ctx.fill();
-
-        ctx.fillStyle = cssVar('--text');
-        ctx.font = valueFont;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'bottom';
-        ctx.fillText(fmt(value), x, y - 8);
-      });
-
-      ctx.fillStyle = cssVar('--text');
-      ctx.font = labelFont;
-      ctx.textAlign = 'right';
-      ctx.textBaseline = 'middle';
-
-      labels.forEach(function(label, index) {
-        const x = getX(index);
-        const y = top + plotH + 21;
-
-        ctx.save();
-        ctx.translate(x, y);
-        ctx.rotate(-Math.PI / 4);
-        ctx.fillText(label, 0, 0);
-        ctx.restore();
-      });
-    }
-
-    function roundRect(ctx, x, y, w, h, r, fillStyle) {
-      if (h < 0) return;
-
-      ctx.beginPath();
-      ctx.moveTo(x + r, y);
-      ctx.lineTo(x + w - r, y);
-      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-      ctx.lineTo(x + w, y + h - r);
-      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-      ctx.lineTo(x + r, y + h);
-      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-      ctx.lineTo(x, y + r);
-      ctx.quadraticCurveTo(x, y, x + r, y);
-      ctx.closePath();
-      ctx.fillStyle = fillStyle;
-      ctx.fill();
-    }
-
-    document.addEventListener('DOMContentLoaded', function() {
-      try {
-        applySavedTheme();
-        loadPublicLogos();
-        updateDateTime();
-
-        setInterval(updateDateTime, 1000);
-
-        loadDashboard();
-
-        setInterval(loadDashboard, 60000);
-
-        window.addEventListener('resize', function() {
-          try {
-            renderDashboard();
-          } catch (err) {
-            console.error('Resize render error:', err);
-          }
-        });
-
-      } catch (err) {
-        console.error('Startup error:', err);
-
-        const updatedText = document.getElementById('updatedText');
-        const errorText = document.getElementById('errorText');
-
-        if (updatedText) updatedText.textContent = 'Dashboard startup error.';
-        if (errorText) errorText.textContent = err.message || String(err);
-      }
-    });
-  </script>
-</body>
-</html>
+  });
+});
+</script>
