@@ -14,6 +14,7 @@
       --text:#ffffff;
       --muted:#cbd6e8;
       --blue:#1683ff;
+      --blue2:#075bd1;
       --green:#0cc34d;
       --yellow:#ffc400;
       --red:#ff3c4f;
@@ -31,6 +32,7 @@
       --text:#12213b;
       --muted:#52637c;
       --blue:#0968dd;
+      --blue2:#0454b8;
       --green:#07933b;
       --yellow:#c89300;
       --red:#d53042;
@@ -1248,6 +1250,13 @@
       regionTable: [],
       updatedAt: '',
       kpi: {}
+    };
+
+    window.onerror = function(message, source, lineno, colno, error) {
+      console.error('Dashboard JS Error:', message, source, lineno, colno, error);
+      setText('updatedText', 'Dashboard script error.');
+      setText('errorText', String(message));
+      return false;
     };
 
     function setText(id, value) {
